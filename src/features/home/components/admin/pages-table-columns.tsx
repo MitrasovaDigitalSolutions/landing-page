@@ -14,7 +14,13 @@ function getSectionsCount(page: PageDetail): number {
 }
 
 export function isPagePublished(page: PageDetail): boolean {
-  return page.is_published ?? page.is_active ?? true;
+  if (typeof page.is_published === "boolean") {
+    return page.is_published;
+  }
+  if (typeof page.is_active === "boolean") {
+    return page.is_active;
+  }
+  return true;
 }
 
 export function buildPageColumns(
