@@ -2,13 +2,17 @@
 
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { useMemo } from "react";
 import { Container } from "@/components/layout/container";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { Accordion } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { ProductAccordionRow } from "@/features/services/components/product-accordion-row";
-import { ServiceTypeTabs } from "@/features/services/components/service-type-tabs";
-import { useServicesFilter } from "@/features/services/hooks/use-services-filter";
+import { ProductCategoryCard } from "@/features/services/components/product-category-card";
+import {
+  groupServicesByCategory,
+  resolveCategoryGridClass,
+} from "@/features/services/utils/group-services";
+import { cn } from "@/lib/utils";
 import type { Service, ServiceType } from "@/types/api.types";
 
 interface ProductsAccordionSectionProps {
@@ -28,20 +32,23 @@ export function ProductsAccordionSection({
   sectionId = "featured",
   badge = "Layanan Kami",
   title = "Produk Simpanan & Pinjaman",
-  subtitle = "Pilih kategori lalu klik produk untuk membaca fitur, setoran awal, dan persyaratannya.",
+  subtitle = "Klik produk pada masing-masing kategori untuk melihat ringkasan fitur dan ketentuannya.",
   showAllPageLink = false,
   defaultExpandFirst = true,
 }: ProductsAccordionSectionProps): React.JSX.Element | null {
-  const { selectedTypeSlug, setSelectedTypeSlug, filteredServices } =
-    useServicesFilter(services);
+  const groups = useMemo(
+    () => groupServicesByCategory(services, types),
+    [services, types]
+  );
 
-  if (services.length === 0) {
+  if (groups.length === 0) {
     return null;
   }
 
-  const firstItem = filteredServices.at(0);
+  const gridClass = resolveCategoryGridClass(groups.length);
+  const firstService = groups.at(0)?.services.at(0);
   const initialExpanded =
-    defaultExpandFirst && firstItem ? [String(firstItem.id)] : [];
+    defaultExpandFirst && firstService ? [String(firstService.id)] : [];
 
   return (
     <section
@@ -69,27 +76,13 @@ export function ProductsAccordionSection({
           }
         />
 
-        {types.length > 0 ? (
-          <ServiceTypeTabs
-            types={types}
-            totalCount={services.length}
-            selectedTypeSlug={selectedTypeSlug}
-            onSelectType={setSelectedTypeSlug}
-          />
-        ) : null}
-
         <Accordion
-          key={selectedTypeSlug}
-          multiple
+          multiple={false}
           defaultValue={initialExpanded}
-          className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-xs"
+          className={cn("grid w-full items-start gap-5 lg:gap-6", gridClass)}
         >
-          {filteredServices.map((service, idx) => (
-            <ProductAccordionRow
-              key={service.id}
-              service={service}
-              index={idx}
-            />
+          {groups.map((group) => (
+            <ProductCategoryCard key={group.key} group={group} />
           ))}
         </Accordion>
       </Container>

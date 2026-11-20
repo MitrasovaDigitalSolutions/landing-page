@@ -93,7 +93,7 @@ export default async function HomePage(): Promise<React.JSX.Element> {
         title={featuredSection?.title ?? "Produk Simpanan & Pinjaman"}
         subtitle={
           featuredSection?.body ??
-          "Pilih kategori lalu klik produk untuk membaca fitur, setoran awal, dan persyaratannya."
+          "Klik produk pada masing-masing kategori untuk melihat ringkasan fitur dan ketentuannya."
         }
         showAllPageLink
         defaultExpandFirst

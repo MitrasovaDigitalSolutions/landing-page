@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Check } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import type { Service } from "@/types/api.types";
@@ -6,6 +6,8 @@ import type { Service } from "@/types/api.types";
 interface ProductAccordionBodyProps {
   service: Service;
 }
+
+const MAX_PREVIEW_POINTS = 4;
 
 function resolveServicePoints(service: Service): string[] {
   if (service.features && service.features.length > 0) {
@@ -20,65 +22,63 @@ function resolveServicePoints(service: Service): string[] {
 export function ProductAccordionBody({
   service,
 }: ProductAccordionBodyProps): React.JSX.Element {
-  const points = resolveServicePoints(service);
-  const categoryName = service.service_type?.name ?? "Layanan";
+  const allPoints = resolveServicePoints(service);
+  const previewPoints = allPoints.slice(0, MAX_PREVIEW_POINTS);
+  const remainingCount = Math.max(0, allPoints.length - previewPoints.length);
 
   return (
-    <div className="grid grid-cols-1 gap-5 pt-2 pb-3 md:grid-cols-12">
-      <div className="space-y-2.5 md:col-span-8">
-        <p className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">
-          Ketentuan & Keunggulan Utama
+    <div className="space-y-3 pt-0.5">
+      {service.short_desc ? (
+        <p className="text-[13px] leading-relaxed text-slate-600">
+          {service.short_desc}
         </p>
+      ) : null}
 
-        {points.length > 0 ? (
+      {previewPoints.length > 0 ? (
+        <div className="space-y-2">
+          <p className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">
+            Keunggulan & Ketentuan
+          </p>
           <ul className="space-y-2">
-            {points.map((point) => (
+            {previewPoints.map((point) => (
               <li
                 key={point}
-                className="flex items-start gap-2.5 text-sm leading-relaxed text-slate-700"
+                className="flex items-start gap-2.5 text-[13px] leading-snug text-slate-700"
               >
-                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" />
+                <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <Check className="size-2.5 stroke-[3]" />
+                </span>
                 <span>{point}</span>
               </li>
             ))}
           </ul>
-        ) : (
-          <p className="text-sm leading-relaxed text-slate-600">
-            {service.short_desc}
-          </p>
-        )}
-      </div>
-
-      <div className="flex flex-col justify-between gap-3 rounded-xl border border-slate-200/80 bg-[#F7F9F7] p-4 md:col-span-4">
-        <div className="space-y-1">
-          <span className="inline-block rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-bold tracking-wider text-primary uppercase">
-            {categoryName}
-          </span>
-          <p className="text-xs leading-relaxed text-slate-600">
-            Lihat syarat lengkap atau hubungi tim kami untuk konsultasi pengajuan.
-          </p>
         </div>
+      ) : null}
 
-        <div className="flex flex-col gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            nativeButton={false}
-            className="h-9 w-full rounded-xl border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:border-primary/40 hover:text-primary"
-            render={<Link href={`/services/${service.slug}`} />}
-          >
-            <span>Lihat Detail Lengkap</span>
-          </Button>
-          <Button
-            size="sm"
-            nativeButton={false}
-            className="h-9 w-full gap-1.5 rounded-xl text-xs font-bold"
-            render={<Link href="/kontak" />}
-          >
-            <span>Ajukan / Tanya</span>
-            <ArrowRight className="size-3.5" />
-          </Button>
-        </div>
+      {remainingCount > 0 ? (
+        <p className="text-[11px] font-medium text-slate-400">
+          +{remainingCount} ketentuan lainnya di halaman detail
+        </p>
+      ) : null}
+
+      <div className="flex flex-wrap items-center justify-between gap-2.5 border-t border-slate-200/70 pt-3">
+        <Link
+          href={`/services/${service.slug}`}
+          className="inline-flex items-center gap-1 text-xs font-bold text-primary no-underline! transition-colors hover:text-primary/80!"
+        >
+          <span>Lihat detail</span>
+          <ArrowUpRight className="size-3.5" />
+        </Link>
+
+        <Button
+          size="sm"
+          nativeButton={false}
+          className="h-8 gap-1.5 rounded-lg px-3.5 text-xs font-semibold no-underline! hover:text-primary-foreground!"
+          render={<Link href="/kontak" />}
+        >
+          <span>Ajukan</span>
+          <ArrowRight className="size-3.5" />
+        </Button>
       </div>
     </div>
   );
