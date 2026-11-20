@@ -1,15 +1,52 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
+  logging: {
+    fetches: {
+      fullUrl: true,
+      hmrRefreshes: true,
+    },
+  },
+  cacheLife: {
+    cms: {
+      stale: 300,
+      revalidate: 60,
+      expire: 3600,
+    },
+  },
   turbopack: {
     rules: {
       "*.css": {
         loaders: ["@tailwindcss/turbopack"],
         as: "*.css",
       },
+    },
+  },
+  images: {
+    dangerouslyAllowSVG: true,
+    remotePatterns: [
+      {
+        protocol: "http",
+        hostname: "43.157.197.42",
+        port: "8088",
+        pathname: "/storage/**",
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        pathname: "/storage/**",
+      },
+      {
+        protocol: "https",
+        hostname: "**",
+      },
+    ],
+  },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "12mb",
     },
   },
 };
