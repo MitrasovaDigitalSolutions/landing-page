@@ -1,0 +1,20 @@
+import { CACHE_TAGS } from "@/lib/cache-tags";
+import { httpClient } from "@/lib/http-client";
+import type { BusinessUnit } from "@/types/api.types";
+import { cacheLife, cacheTag } from "next/cache";
+
+export async function getBusinessUnits(
+  siteKey?: string
+): Promise<BusinessUnit[]> {
+  "use cache";
+  cacheLife("cms");
+  cacheTag(CACHE_TAGS.businessUnits(siteKey));
+
+  return httpClient.get<BusinessUnit[]>("/business-units", { siteKey });
+}
+
+export async function getAdminBusinessUnits(
+  token: string
+): Promise<BusinessUnit[]> {
+  return httpClient.get<BusinessUnit[]>("/admin/business-units", { token });
+}
