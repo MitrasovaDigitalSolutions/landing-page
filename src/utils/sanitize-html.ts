@@ -1,4 +1,5 @@
 import sanitizeHtml from "sanitize-html";
+import { rewriteEmbeddedMediaUrl } from "@/utils/media";
 
 const HTML_TAG_PATTERN = /<\/?[a-z][\s\S]*>/i;
 
@@ -86,5 +87,19 @@ export function sanitizeArticleHtml(raw: string): string {
       },
     },
     allowedSchemes: ["http", "https", "mailto"],
+    transformTags: {
+      img: (tagName, attribs) => {
+        if (!attribs.src) {
+          return { tagName, attribs };
+        }
+        return {
+          tagName,
+          attribs: {
+            ...attribs,
+            src: rewriteEmbeddedMediaUrl(attribs.src),
+          },
+        };
+      },
+    },
   });
 }

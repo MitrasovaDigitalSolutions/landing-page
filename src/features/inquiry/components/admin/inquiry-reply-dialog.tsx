@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { updateInquiryStatusAction } from "@/features/inquiry/services/inquiry.actions";
 import type { InquiryItem } from "@/features/inquiry/types/inquiry.types";
 import { queryKeys } from "@/lib/query-keys";
+import { resolveMediaUrl } from "@/utils/media";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ExternalLink, Mail, MessageCircle, Phone } from "lucide-react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -67,6 +68,8 @@ export function InquiryReplyDialog({
   });
 
   const cleanWa = inquiry?.phone.replace(/[^0-9]/g, "") ?? "";
+  const attachmentHref =
+    resolveMediaUrl(inquiry?.attachment_url) ?? inquiry?.attachment_url;
 
   const handleSubmit = methods.handleSubmit((values) => {
     mutation.mutate(values);
@@ -106,9 +109,9 @@ export function InquiryReplyDialog({
             <p className="whitespace-pre-wrap leading-relaxed text-slate-600">
               {inquiry.message}
             </p>
-            {inquiry.attachment_url ? (
+            {attachmentHref ? (
               <a
-                href={inquiry.attachment_url}
+                href={attachmentHref}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-1 pt-1 text-xs font-semibold text-primary underline"

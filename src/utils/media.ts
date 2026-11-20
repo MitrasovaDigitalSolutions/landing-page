@@ -1,11 +1,12 @@
 import { env } from "@/config/env";
 
-function getApiOrigin(): string {
+export const MEDIA_PROXY_PREFIX = "/api/media";
+
+function getApiOriginUrl(): URL {
   try {
-    const parsed = new URL(env.NEXT_PUBLIC_API_URL);
-    return parsed.origin;
+    return new URL(env.NEXT_PUBLIC_API_URL);
   } catch {
-    return "http://43.157.197.42:8088";
+    return new URL("http://43.157.197.42:8088");
   }
 }
 
@@ -22,45 +23,106 @@ function isInvalidValue(value?: string | null): boolean {
   );
 }
 
-function normalizeAbsoluteUrl(rawUrl: string, apiOrigin: string): string {
+function extractStorageSubpath(pathname: string): string | null {
+  const clean = pathname.replace(/^\/+/, "");
+  if (!clean.startsWith("storage/")) {
+    return null;
+  }
+  const subpath = clean.slice("storage/".length).replace(/^\/+/, "");
+  return subpath.length > 0 ? subpath : null;
+}
+
+function toProxyPath(storageSubpath: string, search = ""): string {
+  const clean = storageSubpath.replace(/^\/+/, "");
+  return `${MEDIA_PROXY_PREFIX}/${clean}${search}`;
+}
+
+function normalizeAbsoluteUrl(rawUrl: string, apiOriginUrl: URL): string {
   try {
     const parsed = new URL(rawUrl);
-    if (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") {
-      return `${apiOrigin}${parsed.pathname}${parsed.search}`;
+    const isLocalhost =
+      parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
+    const isSameBackendHost = parsed.hostname === apiOriginUrl.hostname;
+    const storageSubpath = extractStorageSubpath(parsed.pathname);
+
+    if (
+      storageSubpath &&
+      parsed.protocol === "http:" &&
+      (isSameBackendHost || isLocalhost)
+    ) {
+      if (isLocalhost && apiOriginUrl.protocol === "https:") {
+        return `${apiOriginUrl.origin}/storage/${storageSubpath}${parsed.search}`;
+      }
+      return toProxyPath(storageSubpath, parsed.search);
     }
+
+    if (isLocalhost) {
+      return `${apiOriginUrl.origin}${parsed.pathname}${parsed.search}`;
+    }
+
     return parsed.toString();
   } catch {
     return rawUrl;
   }
 }
 
-function buildStorageUrl(pathValue: string, apiOrigin: string): string {
+function buildStorageUrl(pathValue: string, apiOriginUrl: URL): string {
   const cleanPath = pathValue.replace(/^\/+/, "");
-  if (cleanPath.startsWith("storage/")) {
-    return `${apiOrigin}/${cleanPath}`;
+  const storageSubpath = cleanPath.startsWith("storage/")
+    ? cleanPath.slice("storage/".length).replace(/^\/+/, "")
+    : cleanPath;
+
+  if (!storageSubpath) {
+    return apiOriginUrl.origin;
   }
-  return `${apiOrigin}/storage/${cleanPath}`;
+
+  if (apiOriginUrl.protocol === "http:") {
+    return toProxyPath(storageSubpath);
+  }
+
+  return `${apiOriginUrl.origin}/storage/${storageSubpath}`;
 }
 
 export function resolveMediaUrl(
   url?: string | null,
   fallbackPath?: string | null
 ): string | null {
-  const apiOrigin = getApiOrigin();
+  const apiOriginUrl = getApiOriginUrl();
 
   if (!isInvalidValue(url) && url) {
     const trimmed = url.trim();
-    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-      return normalizeAbsoluteUrl(trimmed, apiOrigin);
+    if (
+      trimmed.startsWith(`${MEDIA_PROXY_PREFIX}/`) ||
+      trimmed.startsWith("/images/")
+    ) {
+      return trimmed;
     }
-    return buildStorageUrl(trimmed, apiOrigin);
+    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+      return normalizeAbsoluteUrl(trimmed, apiOriginUrl);
+    }
+    return buildStorageUrl(trimmed, apiOriginUrl);
   }
 
   if (!isInvalidValue(fallbackPath) && fallbackPath) {
-    return buildStorageUrl(fallbackPath.trim(), apiOrigin);
+    const trimmedFallback = fallbackPath.trim();
+    if (
+      trimmedFallback.startsWith(`${MEDIA_PROXY_PREFIX}/`) ||
+      trimmedFallback.startsWith("/images/")
+    ) {
+      return trimmedFallback;
+    }
+    return buildStorageUrl(trimmedFallback, apiOriginUrl);
   }
 
   return null;
+}
+
+export function rewriteEmbeddedMediaUrl(rawUrl: string): string {
+  const trimmed = rawUrl.trim();
+  if (!trimmed.toLowerCase().startsWith("http://")) {
+    return rawUrl;
+  }
+  return normalizeAbsoluteUrl(trimmed, getApiOriginUrl());
 }
 
 export function resolveGalleryUrls(
