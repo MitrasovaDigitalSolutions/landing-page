@@ -46,6 +46,7 @@ export function HeroSlide({
         fallbackPath={slide.image_path}
         alt={slide.title}
         fill
+        sizes="100vw"
         priority={isFirst}
         className="object-cover object-center"
         fallbackClassName="bg-slate-900"

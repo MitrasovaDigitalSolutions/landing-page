@@ -1,5 +1,9 @@
 import sanitizeHtml from "sanitize-html";
-import { rewriteEmbeddedMediaUrl } from "@/utils/media";
+import {
+  buildMediaVariantUrl,
+  isOptimizableProxyMedia,
+  rewriteEmbeddedMediaUrl,
+} from "@/utils/media";
 
 const HTML_TAG_PATTERN = /<\/?[a-z][\s\S]*>/i;
 
@@ -74,7 +78,7 @@ export function sanitizeArticleHtml(raw: string): string {
     allowedTags: ALLOWED_TAGS,
     allowedAttributes: {
       a: ["href", "target", "rel"],
-      img: ["src", "alt", "title"],
+      img: ["src", "alt", "title", "loading", "decoding"],
       p: ["style"],
       h1: ["style"],
       h2: ["style"],
@@ -92,11 +96,17 @@ export function sanitizeArticleHtml(raw: string): string {
         if (!attribs.src) {
           return { tagName, attribs };
         }
+        const rewrittenSrc = rewriteEmbeddedMediaUrl(attribs.src);
+        const optimizedSrc = isOptimizableProxyMedia(rewrittenSrc)
+          ? buildMediaVariantUrl(rewrittenSrc, 1080, 80)
+          : rewrittenSrc;
         return {
           tagName,
           attribs: {
             ...attribs,
-            src: rewriteEmbeddedMediaUrl(attribs.src),
+            src: optimizedSrc,
+            loading: attribs.loading || "lazy",
+            decoding: attribs.decoding || "async",
           },
         };
       },
