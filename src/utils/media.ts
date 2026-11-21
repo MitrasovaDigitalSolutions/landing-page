@@ -125,6 +125,29 @@ export function rewriteEmbeddedMediaUrl(rawUrl: string): string {
   return normalizeAbsoluteUrl(trimmed, getApiOriginUrl());
 }
 
+export function isOptimizableProxyMedia(url: string): boolean {
+  if (!url.startsWith(`${MEDIA_PROXY_PREFIX}/`)) {
+    return false;
+  }
+  const pathWithoutQuery = url.split("?")[0]?.toLowerCase() ?? "";
+  return !pathWithoutQuery.endsWith(".svg") && !pathWithoutQuery.endsWith(".gif");
+}
+
+export function buildMediaVariantUrl(
+  proxyUrl: string,
+  width: number,
+  quality = 80
+): string {
+  try {
+    const parsed = new URL(proxyUrl, "http://placeholder.local");
+    parsed.searchParams.set("w", String(width));
+    parsed.searchParams.set("q", String(quality));
+    return `${parsed.pathname}${parsed.search}`;
+  } catch {
+    return proxyUrl;
+  }
+}
+
 export function resolveGalleryUrls(
   galleryUrls?: string[] | null,
   galleryPaths?: string[] | null
