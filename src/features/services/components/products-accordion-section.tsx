@@ -34,7 +34,7 @@ export function ProductsAccordionSection({
   title = "Produk Simpanan & Pinjaman",
   subtitle = "Klik produk pada masing-masing kategori untuk melihat ringkasan fitur dan ketentuannya.",
   showAllPageLink = false,
-  defaultExpandFirst = true,
+  defaultExpandFirst = false,
 }: ProductsAccordionSectionProps): React.JSX.Element | null {
   const groups = useMemo(
     () => groupServicesByCategory(services, types),

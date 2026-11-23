@@ -105,7 +105,6 @@ export default async function HomePage(): Promise<React.JSX.Element> {
             "Klik produk pada masing-masing kategori untuk melihat ringkasan fitur dan ketentuannya."
           }
           showAllPageLink
-          defaultExpandFirst
         />
       ) : null}
       {effectiveModules.portfolios ? (

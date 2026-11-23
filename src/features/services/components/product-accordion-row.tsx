@@ -27,8 +27,8 @@ export function ProductAccordionRow({
           {numberLabel}
         </span>
 
-        <div className="min-w-0 flex-1 pr-2 text-left">
-          <span className="block text-sm font-bold tracking-tight text-slate-900 transition-colors group-hover/accordion-trigger:text-primary group-aria-expanded/accordion-trigger:text-primary sm:text-[15px]">
+        <div className="min-w-0 flex-1 overflow-hidden pr-2 text-left">
+          <span className="block break-words text-sm font-bold tracking-tight text-slate-900 transition-colors group-hover/accordion-trigger:text-primary group-aria-expanded/accordion-trigger:text-primary sm:text-[15px]">
             {service.name}
           </span>
           {service.short_desc ? (

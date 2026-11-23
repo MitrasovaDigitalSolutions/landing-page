@@ -10,7 +10,7 @@ export function ProductCategoryCard({
   group,
 }: ProductCategoryCardProps): React.JSX.Element {
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200/85 border-t-2 border-t-primary/75 bg-white shadow-xs transition-shadow hover:shadow-sm">
+    <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-200/85 border-t-2 border-t-primary/75 bg-white shadow-xs transition-shadow hover:shadow-sm">
       <div className="flex items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/80 px-5 py-4">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/15">

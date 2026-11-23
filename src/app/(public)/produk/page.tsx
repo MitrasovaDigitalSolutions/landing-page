@@ -90,7 +90,6 @@ export default async function ProdukPage(): Promise<React.JSX.Element> {
         title="Daftar Produk Simpanan & Pinjaman"
         subtitle="Klik salah satu produk untuk melihat syarat pembukaan rekening, keunggulan, serta ketentuannya."
         showAllPageLink={false}
-        defaultExpandFirst
       />
 
       <ProductsCtaBanner
