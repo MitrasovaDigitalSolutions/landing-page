@@ -8,16 +8,24 @@ export async function getPortfolios(siteKey?: string): Promise<Portfolio[]> {
   cacheLife("cms");
   cacheTag(CACHE_TAGS.portfolios(siteKey));
 
-  return httpClient.get<Portfolio[]>("/portfolios", { siteKey });
+  try {
+    return await httpClient.get<Portfolio[]>("/portfolios", { siteKey });
+  } catch {
+    return [];
+  }
 }
 
 export async function getPortfolioBySlug(
   slug: string,
   siteKey?: string
-): Promise<Portfolio> {
+): Promise<Portfolio | null> {
   "use cache";
   cacheLife("cms");
   cacheTag(CACHE_TAGS.portfolio(slug, siteKey), CACHE_TAGS.portfolios(siteKey));
 
-  return httpClient.get<Portfolio>(`/portfolios/${slug}`, { siteKey });
+  try {
+    return await httpClient.get<Portfolio>(`/portfolios/${slug}`, { siteKey });
+  } catch {
+    return null;
+  }
 }

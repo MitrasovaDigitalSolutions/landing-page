@@ -10,5 +10,9 @@ export async function getTestimonials(
   cacheLife("cms");
   cacheTag(CACHE_TAGS.testimonials(siteKey));
 
-  return httpClient.get<Testimonial[]>("/testimonials", { siteKey });
+  try {
+    return await httpClient.get<Testimonial[]>("/testimonials", { siteKey });
+  } catch {
+    return [];
+  }
 }

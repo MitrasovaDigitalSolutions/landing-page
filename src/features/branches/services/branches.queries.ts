@@ -8,5 +8,9 @@ export async function getBranches(siteKey?: string): Promise<Branch[]> {
   cacheLife("cms");
   cacheTag(CACHE_TAGS.branches(siteKey));
 
-  return httpClient.get<Branch[]>("/branches", { siteKey });
+  try {
+    return await httpClient.get<Branch[]>("/branches", { siteKey });
+  } catch {
+    return [];
+  }
 }

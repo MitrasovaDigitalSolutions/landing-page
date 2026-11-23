@@ -10,5 +10,9 @@ export async function getBusinessUnits(
   cacheLife("cms");
   cacheTag(CACHE_TAGS.businessUnits(siteKey));
 
-  return httpClient.get<BusinessUnit[]>("/business-units", { siteKey });
+  try {
+    return await httpClient.get<BusinessUnit[]>("/business-units", { siteKey });
+  } catch {
+    return [];
+  }
 }

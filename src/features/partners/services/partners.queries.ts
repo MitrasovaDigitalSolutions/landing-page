@@ -8,5 +8,9 @@ export async function getPartners(siteKey?: string): Promise<Partner[]> {
   cacheLife("cms");
   cacheTag(CACHE_TAGS.partners(siteKey));
 
-  return httpClient.get<Partner[]>("/partners", { siteKey });
+  try {
+    return await httpClient.get<Partner[]>("/partners", { siteKey });
+  } catch {
+    return [];
+  }
 }

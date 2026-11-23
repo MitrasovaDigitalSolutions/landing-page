@@ -8,5 +8,9 @@ export async function getFaqs(siteKey?: string): Promise<FaqRawItem[]> {
   cacheLife("cms");
   cacheTag(CACHE_TAGS.faqs(siteKey));
 
-  return httpClient.get<FaqRawItem[]>("/faqs", { siteKey });
+  try {
+    return await httpClient.get<FaqRawItem[]>("/faqs", { siteKey });
+  } catch {
+    return [];
+  }
 }

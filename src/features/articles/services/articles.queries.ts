@@ -10,7 +10,13 @@ export async function getArticleCategories(
   cacheLife("cms");
   cacheTag(CACHE_TAGS.articleCategories(siteKey));
 
-  return httpClient.get<ArticleCategory[]>("/article-categories", { siteKey });
+  try {
+    return await httpClient.get<ArticleCategory[]>("/article-categories", {
+      siteKey,
+    });
+  } catch {
+    return [];
+  }
 }
 
 export async function getArticles(
@@ -21,19 +27,27 @@ export async function getArticles(
   cacheLife("cms");
   cacheTag(CACHE_TAGS.articles(siteKey));
 
-  return httpClient.get<Article[]>("/articles", {
-    siteKey,
-    params: categorySlug ? { category: categorySlug } : undefined,
-  });
+  try {
+    return await httpClient.get<Article[]>("/articles", {
+      siteKey,
+      params: categorySlug ? { category: categorySlug } : undefined,
+    });
+  } catch {
+    return [];
+  }
 }
 
 export async function getArticleBySlug(
   slug: string,
   siteKey?: string
-): Promise<Article> {
+): Promise<Article | null> {
   "use cache";
   cacheLife("cms");
   cacheTag(CACHE_TAGS.article(slug, siteKey), CACHE_TAGS.articles(siteKey));
 
-  return httpClient.get<Article>(`/articles/${slug}`, { siteKey });
+  try {
+    return await httpClient.get<Article>(`/articles/${slug}`, { siteKey });
+  } catch {
+    return null;
+  }
 }

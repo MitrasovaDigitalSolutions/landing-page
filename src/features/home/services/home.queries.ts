@@ -8,25 +8,39 @@ export async function getPublicPages(siteKey?: string): Promise<PageDetail[]> {
   cacheLife("cms");
   cacheTag(CACHE_TAGS.pages(siteKey));
 
-  const pages = await httpClient.get<PageDetail[]>("/pages", { siteKey });
-  return Array.isArray(pages) ? pages : [];
+  try {
+    const pages = await httpClient.get<PageDetail[]>("/pages", { siteKey });
+    return Array.isArray(pages) ? pages : [];
+  } catch {
+    return [];
+  }
 }
 
 export async function getPageBySlug(
   slug: string,
   siteKey?: string
-): Promise<PageDetail> {
+): Promise<PageDetail | null> {
   "use cache";
   cacheLife("cms");
   cacheTag(CACHE_TAGS.page(slug, siteKey), CACHE_TAGS.pages(siteKey));
 
-  return httpClient.get<PageDetail>(`/pages/${slug}`, { siteKey });
+  try {
+    return await httpClient.get<PageDetail>(`/pages/${slug}`, { siteKey });
+  } catch {
+    return null;
+  }
 }
 
-export async function getHomePageDetail(siteKey?: string): Promise<PageDetail> {
+export async function getHomePageDetail(
+  siteKey?: string
+): Promise<PageDetail | null> {
   "use cache";
   cacheLife("cms");
   cacheTag(CACHE_TAGS.page("home", siteKey), CACHE_TAGS.pages(siteKey));
 
-  return httpClient.get<PageDetail>("/pages/home", { siteKey });
+  try {
+    return await httpClient.get<PageDetail>("/pages/home", { siteKey });
+  } catch {
+    return null;
+  }
 }

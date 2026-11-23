@@ -8,7 +8,11 @@ export async function getServiceTypes(siteKey?: string): Promise<ServiceType[]> 
   cacheLife("cms");
   cacheTag(CACHE_TAGS.serviceTypes(siteKey));
 
-  return httpClient.get<ServiceType[]>("/service-types", { siteKey });
+  try {
+    return await httpClient.get<ServiceType[]>("/service-types", { siteKey });
+  } catch {
+    return [];
+  }
 }
 
 export async function getServices(
@@ -19,19 +23,27 @@ export async function getServices(
   cacheLife("cms");
   cacheTag(CACHE_TAGS.services(siteKey));
 
-  return httpClient.get<Service[]>("/services", {
-    siteKey,
-    params: serviceTypeSlug ? { service_type: serviceTypeSlug } : undefined,
-  });
+  try {
+    return await httpClient.get<Service[]>("/services", {
+      siteKey,
+      params: serviceTypeSlug ? { service_type: serviceTypeSlug } : undefined,
+    });
+  } catch {
+    return [];
+  }
 }
 
 export async function getServiceBySlug(
   slug: string,
   siteKey?: string
-): Promise<Service> {
+): Promise<Service | null> {
   "use cache";
   cacheLife("cms");
   cacheTag(CACHE_TAGS.service(slug, siteKey), CACHE_TAGS.services(siteKey));
 
-  return httpClient.get<Service>(`/services/${slug}`, { siteKey });
+  try {
+    return await httpClient.get<Service>(`/services/${slug}`, { siteKey });
+  } catch {
+    return null;
+  }
 }
