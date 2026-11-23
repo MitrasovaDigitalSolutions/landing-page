@@ -1,10 +1,13 @@
 import { Container } from "@/components/layout/container";
 import { SmartImage } from "@/components/shared/smart-image";
+import { env } from "@/config/env";
+import { resolveEffectiveModules, resolveSiteConfig } from "@/config/sites";
 import { ArticleCard } from "@/features/articles/components/article-card";
 import {
   getArticleBySlug,
   getArticles,
 } from "@/features/articles/services/articles.queries";
+import { getSiteSettings } from "@/services/api/settings.service";
 import { formatDateId } from "@/utils/format-date";
 import { resolveMediaUrl } from "@/utils/media";
 import { sanitizeArticleHtml } from "@/utils/sanitize-html";
@@ -22,12 +25,19 @@ export default async function ArticleDetailPage({
   params,
 }: ArticleDetailPageProps): Promise<React.JSX.Element> {
   const { slug } = await params;
-  const [article, allArticles] = await Promise.all([
-    getArticleBySlug(slug).catch(() => null),
-    getArticles().catch(() => []),
+  const siteKey = env.NEXT_PUBLIC_SITE_KEY;
+  const [article, allArticles, settings] = await Promise.all([
+    getArticleBySlug(slug, siteKey).catch(() => null),
+    getArticles(undefined, siteKey).catch(() => []),
+    getSiteSettings(siteKey),
   ]);
 
-  if (!article) {
+  const effectiveModules = resolveEffectiveModules(
+    resolveSiteConfig(siteKey).modules,
+    settings.modules?.is_active
+  );
+
+  if (!effectiveModules.articles || !article) {
     notFound();
   }
 

@@ -12,9 +12,3 @@ export async function getBusinessUnits(
 
   return httpClient.get<BusinessUnit[]>("/business-units", { siteKey });
 }
-
-export async function getAdminBusinessUnits(
-  token: string
-): Promise<BusinessUnit[]> {
-  return httpClient.get<BusinessUnit[]>("/admin/business-units", { token });
-}

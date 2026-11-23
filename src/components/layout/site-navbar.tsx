@@ -4,7 +4,6 @@ import { ArrowUpRight, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSyncExternalStore } from "react";
-import { NavbarAdminLink } from "@/components/layout/navbar-admin-link";
 import { NavbarBrand } from "@/components/layout/navbar-brand";
 import { NavbarMegaMenu } from "@/components/layout/navbar-mega-menu";
 import { NavbarMobile } from "@/components/layout/navbar-mobile";
@@ -104,8 +103,6 @@ export function SiteNavbar({
         />
 
         <div className="hidden items-center gap-2 lg:flex">
-          <NavbarAdminLink isOverHero={isOverHero} />
-
           {waDigits ? (
             <Button
               variant="outline"

@@ -1,4 +1,10 @@
-import type { SiteConfig, TenantSlug } from "@/types/site.types";
+import type { SiteModulesActiveFlags } from "@/types/site-settings.types";
+import type {
+  EffectiveModuleFlags,
+  SiteConfig,
+  SiteModuleFlags,
+  TenantSlug,
+} from "@/types/site.types";
 
 export const SITES_REGISTRY: Record<TenantSlug, SiteConfig> = {
   ksp: {
@@ -124,4 +130,20 @@ export function resolveSiteConfig(keyOrSlug: string): SiteConfig {
   }
 
   return SITES_REGISTRY[DEFAULT_SITE_SLUG];
+}
+
+export function resolveEffectiveModules(
+  base: SiteModuleFlags,
+  backendFlags?: SiteModulesActiveFlags
+): EffectiveModuleFlags {
+  return {
+    ...base,
+    services: backendFlags?.services ?? base.services,
+    portfolios: backendFlags?.portfolios ?? base.portfolios,
+    articles: backendFlags?.news ?? base.articles,
+    branches: backendFlags?.branches ?? base.branches ?? true,
+    businessUnits: backendFlags?.business_units ?? base.businessUnits ?? true,
+    careers: backendFlags?.careers ?? base.careers ?? true,
+    contact: backendFlags?.contact ?? base.contact ?? true,
+  };
 }

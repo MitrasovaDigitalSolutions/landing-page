@@ -35,30 +35,3 @@ export async function getServiceBySlug(
 
   return httpClient.get<Service>(`/services/${slug}`, { siteKey });
 }
-
-export async function getAdminServiceTypes(
-  token: string
-): Promise<ServiceType[]> {
-  return httpClient.get<ServiceType[]>("/admin/service-types", { token });
-}
-
-export async function getAdminServices(
-  token: string,
-  page = 1,
-  serviceTypeId?: number
-): Promise<Service[]> {
-  return httpClient.get<Service[]>("/admin/services", {
-    token,
-    params: {
-      page,
-      service_type_id: serviceTypeId,
-    },
-  });
-}
-
-export async function getAdminServiceDetail(
-  id: number,
-  token: string
-): Promise<Service> {
-  return httpClient.get<Service>(`/admin/services/${id}`, { token });
-}

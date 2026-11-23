@@ -10,7 +10,3 @@ export async function getPartners(siteKey?: string): Promise<Partner[]> {
 
   return httpClient.get<Partner[]>("/partners", { siteKey });
 }
-
-export async function getAdminPartners(token: string): Promise<Partner[]> {
-  return httpClient.get<Partner[]>("/admin/partners", { token });
-}

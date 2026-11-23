@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { PageHero } from "@/components/layout/page-hero";
 import { env } from "@/config/env";
+import { resolveEffectiveModules, resolveSiteConfig } from "@/config/sites";
 import { PublicBranchesGrid } from "@/features/branches/components/public-branches-grid";
 import { getBranches } from "@/features/branches/services/branches.queries";
 import { getPageBySlug } from "@/features/home/services/home.queries";
+import { getSiteSettings } from "@/services/api/settings.service";
 import { unwrapSettled } from "@/utils/promise";
 
 export const instant = false;
@@ -21,16 +24,26 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function CabangPage(): Promise<React.JSX.Element> {
   const siteKey = env.NEXT_PUBLIC_SITE_KEY;
 
-  const [page, branches] = await Promise.all([
+  const [page, branches, settings] = await Promise.all([
     Promise.allSettled([getPageBySlug("cabang", siteKey)]).then((r) =>
       unwrapSettled(r[0], null)
     ),
     Promise.allSettled([getBranches(siteKey)]).then((r) =>
       unwrapSettled(r[0], [])
     ),
+    getSiteSettings(siteKey),
   ]);
 
-  const heroSection = (page?.sections ?? []).find((s) => s.key === "hero");
+  const effectiveModules = resolveEffectiveModules(
+    resolveSiteConfig(siteKey).modules,
+    settings.modules?.is_active
+  );
+  if (!effectiveModules.branches || page?.is_active === false) {
+    notFound();
+  }
+
+  const sections = (page?.sections ?? []).filter((s) => s.is_active !== false);
+  const heroSection = sections.find((s) => s.key === "hero");
   const stats = heroSection?.payload?.stats ?? [];
 
   return (

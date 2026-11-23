@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { env } from "@/config/env";
 import { resolveSiteConfig } from "@/config/sites";
 import { getPageBySlug } from "@/features/home/services/home.queries";
@@ -32,7 +33,11 @@ export default async function ProfilPage(): Promise<React.JSX.Element> {
     getSiteSettings(siteKey),
   ]);
 
-  const sections = page?.sections ?? [];
+  if (page?.is_active === false) {
+    notFound();
+  }
+
+  const sections = (page?.sections ?? []).filter((s) => s.is_active !== false);
   const heroSection = sections.find((s) => s.key === "hero");
   const historySection = sections.find((s) => s.key === "sejarah");
   const visionSection = sections.find((s) => s.key === "visi-misi");

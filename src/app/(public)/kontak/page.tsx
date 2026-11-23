@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { PageHero } from "@/components/layout/page-hero";
 import { env } from "@/config/env";
+import { resolveEffectiveModules, resolveSiteConfig } from "@/config/sites";
 import { getPageBySlug } from "@/features/home/services/home.queries";
 import { ContactHubSection } from "@/features/inquiry/components/contact-hub-section";
 import { getSiteSettings } from "@/services/api/settings.service";
@@ -28,7 +30,16 @@ export default async function KontakPage(): Promise<React.JSX.Element> {
     getSiteSettings(siteKey),
   ]);
 
-  const heroSection = (page?.sections ?? []).find((s) => s.key === "hero");
+  const effectiveModules = resolveEffectiveModules(
+    resolveSiteConfig(siteKey).modules,
+    settings.modules?.is_active
+  );
+  if (!effectiveModules.contact || page?.is_active === false) {
+    notFound();
+  }
+
+  const sections = (page?.sections ?? []).filter((s) => s.is_active !== false);
+  const heroSection = sections.find((s) => s.key === "hero");
 
   return (
     <div className="flex flex-col">

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { PageHero } from "@/components/layout/page-hero";
 import { env } from "@/config/env";
+import { resolveEffectiveModules, resolveSiteConfig } from "@/config/sites";
 import { HeroCarousel } from "@/features/home/components/hero-carousel";
 import { getPageBySlug } from "@/features/home/services/home.queries";
 import { resolveHeroSlides } from "@/features/home/utils/section-normalizer";
@@ -41,7 +43,15 @@ export default async function ProdukPage(): Promise<React.JSX.Element> {
     getSiteSettings(siteKey),
   ]);
 
-  const sections = page?.sections ?? [];
+  const effectiveModules = resolveEffectiveModules(
+    resolveSiteConfig(siteKey).modules,
+    settings.modules?.is_active
+  );
+  if (!effectiveModules.services || page?.is_active === false) {
+    notFound();
+  }
+
+  const sections = (page?.sections ?? []).filter((s) => s.is_active !== false);
   const heroSection = sections.find((s) => s.key === "hero");
   const ctaSection = sections.find((s) => s.key === "cta");
   const slides = heroSection ? resolveHeroSlides(heroSection) : [];

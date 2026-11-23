@@ -1,5 +1,5 @@
 import type { PageDetail } from "@/types/api.types";
-import type { SiteModuleFlags } from "@/types/site.types";
+import type { EffectiveModuleFlags } from "@/types/site.types";
 
 export interface NavItem {
   label: string;
@@ -20,8 +20,36 @@ const RESERVED_CORE_SLUGS = new Set([
   "kontak",
 ]);
 
-function isPublicPageVisible(page: PageDetail): boolean {
-  return page.is_published !== false && page.is_active !== false;
+function isSlugAllowedByModules(
+  slug: string,
+  modules: EffectiveModuleFlags
+): boolean {
+  switch (slug) {
+    case "cabang":
+      return modules.branches;
+    case "unit-usaha":
+      return modules.businessUnits;
+    case "produk":
+      return modules.services;
+    case "berita":
+      return modules.articles;
+    case "karir":
+      return modules.careers;
+    case "kontak":
+      return modules.contact;
+    default:
+      return true;
+  }
+}
+
+function isPublicPageVisible(
+  page: PageDetail,
+  modules?: EffectiveModuleFlags
+): boolean {
+  if (page.is_published === false || page.is_active === false) {
+    return false;
+  }
+  return modules ? isSlugAllowedByModules(page.slug, modules) : true;
 }
 
 function toNavChildItem(page: PageDetail): NavItem {
@@ -33,31 +61,37 @@ function toNavChildItem(page: PageDetail): NavItem {
 }
 
 export function getHeaderNavigationItems(
-  modules: SiteModuleFlags
+  modules: EffectiveModuleFlags
 ): NavItem[] {
+  const aboutChildren: NavItem[] = [
+    {
+      label: "Profil & Sejarah",
+      href: "/profil",
+      description: "Sejarah, visi misi, strategi & program kerja",
+    },
+  ];
+
+  if (modules.branches) {
+    aboutChildren.push({
+      label: "Jaringan Cabang",
+      href: "/cabang",
+      description: "Lokasi kantor pusat & kantor cabang terdekat",
+    });
+  }
+
+  if (modules.businessUnits) {
+    aboutChildren.push({
+      label: "Unit Usaha",
+      href: "/unit-usaha",
+      description: "Lini unit usaha grup untuk anggota & masyarakat",
+    });
+  }
+
   const items: NavItem[] = [
     { label: "Beranda", href: "/" },
-    {
-      label: "Tentang",
-      href: "/profil",
-      children: [
-        {
-          label: "Profil & Sejarah",
-          href: "/profil",
-          description: "Sejarah, visi misi, strategi & program kerja",
-        },
-        {
-          label: "Jaringan Cabang",
-          href: "/cabang",
-          description: "Lokasi kantor pusat & kantor cabang terdekat",
-        },
-        {
-          label: "Unit Usaha",
-          href: "/unit-usaha",
-          description: "Lini unit usaha grup untuk anggota & masyarakat",
-        },
-      ],
-    },
+    aboutChildren.length === 1 && aboutChildren[0]
+      ? { label: "Profil", href: aboutChildren[0].href }
+      : { label: "Tentang", href: "/profil", children: aboutChildren },
   ];
 
   if (modules.services) {
@@ -71,7 +105,7 @@ export function getHeaderNavigationItems(
   return items;
 }
 
-export function getNavigationItems(modules: SiteModuleFlags): NavItem[] {
+export function getNavigationItems(modules: EffectiveModuleFlags): NavItem[] {
   const items: NavItem[] = [
     { label: "Beranda", href: "/" },
     { label: "Profil", href: "/profil" },
@@ -80,26 +114,27 @@ export function getNavigationItems(modules: SiteModuleFlags): NavItem[] {
   if (modules.services) {
     items.push({ label: "Produk", href: "/produk" });
   }
-
-  items.push(
-    { label: "Cabang", href: "/cabang" },
-    { label: "Unit Usaha", href: "/unit-usaha" }
-  );
-
+  if (modules.branches) {
+    items.push({ label: "Cabang", href: "/cabang" });
+  }
+  if (modules.businessUnits) {
+    items.push({ label: "Unit Usaha", href: "/unit-usaha" });
+  }
   if (modules.articles) {
     items.push({ label: "Berita", href: "/berita" });
   }
-
-  items.push({ label: "Kontak", href: "/kontak" });
+  if (modules.contact) {
+    items.push({ label: "Kontak", href: "/kontak" });
+  }
 
   return items;
 }
 
 export function buildHeaderNavigationFromPages(
   pages: PageDetail[],
-  modules: SiteModuleFlags
+  modules: EffectiveModuleFlags
 ): NavItem[] {
-  const visible = pages.filter(isPublicPageVisible);
+  const visible = pages.filter((page) => isPublicPageVisible(page, modules));
   if (visible.length === 0) {
     return getHeaderNavigationItems(modules);
   }
@@ -134,7 +169,7 @@ export function buildHeaderNavigationFromPages(
   }
 
   const karirPage = visible.find((p) => p.slug === "karir");
-  if (karirPage) {
+  if (modules.careers && karirPage) {
     items.push({ label: karirPage.title || "Karir", href: "/karir" });
   }
 
@@ -155,9 +190,9 @@ export function buildHeaderNavigationFromPages(
 
 export function buildFooterNavigationFromPages(
   pages: PageDetail[],
-  modules: SiteModuleFlags
+  modules: EffectiveModuleFlags
 ): NavItem[] {
-  const visible = pages.filter(isPublicPageVisible);
+  const visible = pages.filter((page) => isPublicPageVisible(page, modules));
   if (visible.length === 0) {
     return getNavigationItems(modules);
   }

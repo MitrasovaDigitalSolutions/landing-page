@@ -1,4 +1,5 @@
 import { env } from "@/config/env";
+import { resolveEffectiveModules, resolveSiteConfig } from "@/config/sites";
 import { ArticlesSection } from "@/features/articles/components/articles-section";
 import {
   getArticleCategories,
@@ -73,7 +74,14 @@ export default async function HomePage(): Promise<React.JSX.Element> {
     getSiteSettings(siteKey),
   ]);
 
-  const sections = pageResult?.sections ?? [];
+  const config = resolveSiteConfig(siteKey);
+  const effectiveModules = resolveEffectiveModules(
+    config.modules,
+    settings.modules?.is_active
+  );
+  const sections = (pageResult?.sections ?? []).filter(
+    (s) => s.is_active !== false
+  );
   const featuredSection = sections.find((s) => s.key === "featured");
   const officeSection = sections.find((s) => s.key === "office");
 
@@ -85,25 +93,31 @@ export default async function HomePage(): Promise<React.JSX.Element> {
         services={servicesResult}
       />
       <PartnersSection partners={partnersResult} />
-      <ProductsAccordionSection
-        sectionId="featured"
-        services={servicesResult}
-        types={typesResult}
-        badge={featuredSection?.payload?.badge ?? "Layanan Kami"}
-        title={featuredSection?.title ?? "Produk Simpanan & Pinjaman"}
-        subtitle={
-          featuredSection?.body ??
-          "Klik produk pada masing-masing kategori untuk melihat ringkasan fitur dan ketentuannya."
-        }
-        showAllPageLink
-        defaultExpandFirst
-      />
-      <PortfolioSection portfolios={portfoliosResult} />
+      {effectiveModules.services ? (
+        <ProductsAccordionSection
+          sectionId="featured"
+          services={servicesResult}
+          types={typesResult}
+          badge={featuredSection?.payload?.badge ?? "Layanan Kami"}
+          title={featuredSection?.title ?? "Produk Simpanan & Pinjaman"}
+          subtitle={
+            featuredSection?.body ??
+            "Klik produk pada masing-masing kategori untuk melihat ringkasan fitur dan ketentuannya."
+          }
+          showAllPageLink
+          defaultExpandFirst
+        />
+      ) : null}
+      {effectiveModules.portfolios ? (
+        <PortfolioSection portfolios={portfoliosResult} />
+      ) : null}
       <TestimonialsSection testimonials={testimonialsResult} />
-      <ArticlesSection
-        articles={articlesResult}
-        categories={articleCategoriesResult}
-      />
+      {effectiveModules.articles ? (
+        <ArticlesSection
+          articles={articlesResult}
+          categories={articleCategoriesResult}
+        />
+      ) : null}
       <FaqSection faqs={faqsResult} />
       <SectionRenderer
         sections={sections}
@@ -111,11 +125,13 @@ export default async function HomePage(): Promise<React.JSX.Element> {
         contact={settings.contact}
         legal={settings.legal}
       />
-      <ContactHubSection
-        officeSection={officeSection}
-        contact={settings.contact}
-        legal={settings.legal}
-      />
+      {effectiveModules.contact ? (
+        <ContactHubSection
+          officeSection={officeSection}
+          contact={settings.contact}
+          legal={settings.legal}
+        />
+      ) : null}
     </div>
   );
 }

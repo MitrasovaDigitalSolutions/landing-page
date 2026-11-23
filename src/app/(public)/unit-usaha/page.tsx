@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { PageHero } from "@/components/layout/page-hero";
+import { env } from "@/config/env";
+import { resolveEffectiveModules, resolveSiteConfig } from "@/config/sites";
 import { PublicBusinessUnitsGrid } from "@/features/business-units/components/public-business-units-grid";
 import { getBusinessUnits } from "@/features/business-units/services/business-units.queries";
 import { getPageBySlug } from "@/features/home/services/home.queries";
-import { env } from "@/config/env";
+import { getSiteSettings } from "@/services/api/settings.service";
 import { unwrapSettled } from "@/utils/promise";
 
 export const instant = false;
@@ -21,16 +24,26 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function UnitUsahaPage(): Promise<React.JSX.Element> {
   const siteKey = env.NEXT_PUBLIC_SITE_KEY;
 
-  const [page, units] = await Promise.all([
+  const [page, units, settings] = await Promise.all([
     Promise.allSettled([getPageBySlug("unit-usaha", siteKey)]).then((r) =>
       unwrapSettled(r[0], null)
     ),
     Promise.allSettled([getBusinessUnits(siteKey)]).then((r) =>
       unwrapSettled(r[0], [])
     ),
+    getSiteSettings(siteKey),
   ]);
 
-  const heroSection = (page?.sections ?? []).find((s) => s.key === "hero");
+  const effectiveModules = resolveEffectiveModules(
+    resolveSiteConfig(siteKey).modules,
+    settings.modules?.is_active
+  );
+  if (!effectiveModules.businessUnits || page?.is_active === false) {
+    notFound();
+  }
+
+  const sections = (page?.sections ?? []).filter((s) => s.is_active !== false);
+  const heroSection = sections.find((s) => s.key === "hero");
   const stats =
     units.length > 0
       ? [{ label: "Unit Usaha Aktif", value: String(units.length) }]

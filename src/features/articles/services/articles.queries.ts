@@ -37,32 +37,3 @@ export async function getArticleBySlug(
 
   return httpClient.get<Article>(`/articles/${slug}`, { siteKey });
 }
-
-export async function getAdminArticleCategories(
-  token: string
-): Promise<ArticleCategory[]> {
-  return httpClient.get<ArticleCategory[]>("/admin/article-categories", {
-    token,
-  });
-}
-
-export async function getAdminArticles(
-  token: string,
-  page = 1,
-  status?: string
-): Promise<Article[]> {
-  return httpClient.get<Article[]>("/admin/articles", {
-    token,
-    params: {
-      page,
-      status: status ?? undefined,
-    },
-  });
-}
-
-export async function getAdminArticleDetail(
-  id: number,
-  token: string
-): Promise<Article> {
-  return httpClient.get<Article>(`/admin/articles/${id}`, { token });
-}

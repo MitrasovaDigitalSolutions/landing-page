@@ -38,24 +38,3 @@ export async function submitInquiryAction(
     };
   }
 }
-
-export async function replyInquiry(
-  id: number,
-  reply: string,
-  token: string
-): Promise<{ success: boolean; message: string }> {
-  return httpClient.post<{ success: boolean; message: string }>(
-    `/admin/inquiries/${id}/reply`,
-    { reply },
-    { token }
-  );
-}
-
-export async function deleteInquiry(
-  id: number,
-  token: string
-): Promise<{ success: boolean }> {
-  return httpClient.delete<{ success: boolean }>(`/admin/inquiries/${id}`, {
-    token,
-  });
-}

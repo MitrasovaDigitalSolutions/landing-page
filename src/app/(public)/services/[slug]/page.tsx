@@ -5,6 +5,8 @@ import { Container } from "@/components/layout/container";
 import { DynamicIcon } from "@/components/shared/dynamic-icon";
 import { SmartImage } from "@/components/shared/smart-image";
 import { Button } from "@/components/ui/button";
+import { env } from "@/config/env";
+import { resolveEffectiveModules, resolveSiteConfig } from "@/config/sites";
 import { InquiryForm } from "@/features/inquiry/components/inquiry-form";
 import { ServiceSiblingsBox } from "@/features/services/components/service-siblings-box";
 import {
@@ -32,13 +34,19 @@ export default async function ServiceDetailPage({
   params,
 }: ServiceDetailPageProps): Promise<React.JSX.Element> {
   const { slug } = await params;
+  const siteKey = env.NEXT_PUBLIC_SITE_KEY;
   const [service, allServices, settings] = await Promise.all([
-    getServiceBySlug(slug).catch(() => null),
-    getServices().catch(() => []),
-    getSiteSettings(),
+    getServiceBySlug(slug, siteKey).catch(() => null),
+    getServices(undefined, siteKey).catch(() => []),
+    getSiteSettings(siteKey),
   ]);
 
-  if (!service) {
+  const effectiveModules = resolveEffectiveModules(
+    resolveSiteConfig(siteKey).modules,
+    settings.modules?.is_active
+  );
+
+  if (!effectiveModules.services || !service) {
     notFound();
   }
 

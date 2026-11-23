@@ -12,9 +12,3 @@ export async function getTestimonials(
 
   return httpClient.get<Testimonial[]>("/testimonials", { siteKey });
 }
-
-export async function getAdminTestimonials(
-  token: string
-): Promise<Testimonial[]> {
-  return httpClient.get<Testimonial[]>("/admin/testimonials", { token });
-}

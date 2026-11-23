@@ -7,7 +7,7 @@ import {
   buildHeaderNavigationFromPages,
   resolveContactNavHref,
 } from "@/config/navigation";
-import { resolveSiteConfig } from "@/config/sites";
+import { resolveEffectiveModules, resolveSiteConfig } from "@/config/sites";
 import { getPublicPages } from "@/features/home/services/home.queries";
 import {
   getServices,
@@ -29,26 +29,36 @@ export default async function PublicLayout({
   const siteKey = env.NEXT_PUBLIC_SITE_KEY;
   const config = resolveSiteConfig(siteKey);
 
-  const [settings, publicPages, serviceTypes, services] = await Promise.all([
+  const [settings, publicPages] = await Promise.all([
     getSiteSettings(siteKey),
     Promise.allSettled([getPublicPages(siteKey)]).then((r) =>
       unwrapSettled(r[0], [])
     ),
-    Promise.allSettled([getServiceTypes(siteKey)]).then((r) =>
-      unwrapSettled(r[0], [])
-    ),
-    Promise.allSettled([getServices(undefined, siteKey)]).then((r) =>
-      unwrapSettled(r[0], [])
-    ),
   ]);
+
+  const effectiveModules = resolveEffectiveModules(
+    config.modules,
+    settings.modules?.is_active
+  );
+
+  const [serviceTypes, services] = effectiveModules.services
+    ? await Promise.all([
+        Promise.allSettled([getServiceTypes(siteKey)]).then((r) =>
+          unwrapSettled(r[0], [])
+        ),
+        Promise.allSettled([getServices(undefined, siteKey)]).then((r) =>
+          unwrapSettled(r[0], [])
+        ),
+      ])
+    : [[], []];
 
   const headerNavItems = buildHeaderNavigationFromPages(
     publicPages,
-    config.modules
+    effectiveModules
   );
   const footerNavItems = buildFooterNavigationFromPages(
     publicPages,
-    config.modules
+    effectiveModules
   );
   const contactHref = resolveContactNavHref(publicPages);
 

@@ -21,20 +21,3 @@ export async function getPortfolioBySlug(
 
   return httpClient.get<Portfolio>(`/portfolios/${slug}`, { siteKey });
 }
-
-export async function getAdminPortfolios(
-  token: string,
-  page = 1
-): Promise<Portfolio[]> {
-  return httpClient.get<Portfolio[]>("/admin/portfolios", {
-    token,
-    params: { page },
-  });
-}
-
-export async function getAdminPortfolioDetail(
-  id: number,
-  token: string
-): Promise<Portfolio> {
-  return httpClient.get<Portfolio>(`/admin/portfolios/${id}`, { token });
-}

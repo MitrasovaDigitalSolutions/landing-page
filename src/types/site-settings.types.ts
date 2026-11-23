@@ -28,20 +28,25 @@ export interface SiteLegalSettings {
   copyright?: string;
 }
 
+export interface SiteModulesActiveFlags {
+  services?: boolean;
+  portfolios?: boolean;
+  branches?: boolean;
+  business_units?: boolean;
+  careers?: boolean;
+  news?: boolean;
+  contact?: boolean;
+}
+
+export interface SiteModulesSettings {
+  is_active?: SiteModulesActiveFlags;
+}
+
 export interface SiteSettings {
   general?: SiteGeneralSettings;
   contact?: SiteContactSettings;
   social?: SiteSocialSettings;
   legal?: SiteLegalSettings;
+  modules?: SiteModulesSettings;
   [group: string]: unknown;
-}
-
-export interface SettingUpsertItem {
-  group: string;
-  key: string;
-  value: string | null;
-}
-
-export interface SettingsBulkRequestPayload {
-  settings: SettingUpsertItem[];
 }

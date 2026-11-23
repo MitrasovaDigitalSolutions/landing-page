@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { PageHero } from "@/components/layout/page-hero";
 import { env } from "@/config/env";
+import { resolveEffectiveModules, resolveSiteConfig } from "@/config/sites";
 import { ArticlesSection } from "@/features/articles/components/articles-section";
 import { InstagramFeedSection } from "@/features/articles/components/instagram-feed-section";
 import {
@@ -9,6 +11,7 @@ import {
 } from "@/features/articles/services/articles.queries";
 import { getInstagramLiveMedia } from "@/features/articles/services/instagram.service";
 import { getPageBySlug } from "@/features/home/services/home.queries";
+import { getSiteSettings } from "@/services/api/settings.service";
 import { unwrapSettled } from "@/utils/promise";
 
 export const instant = false;
@@ -26,7 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function BeritaPage(): Promise<React.JSX.Element> {
   const siteKey = env.NEXT_PUBLIC_SITE_KEY;
 
-  const [page, articles, categories, livePosts] = await Promise.all([
+  const [page, articles, categories, livePosts, settings] = await Promise.all([
     Promise.allSettled([getPageBySlug("berita", siteKey)]).then((r) =>
       unwrapSettled(r[0], null)
     ),
@@ -39,9 +42,18 @@ export default async function BeritaPage(): Promise<React.JSX.Element> {
     Promise.allSettled([getInstagramLiveMedia(6)]).then((r) =>
       unwrapSettled(r[0], [])
     ),
+    getSiteSettings(siteKey),
   ]);
 
-  const sections = page?.sections ?? [];
+  const effectiveModules = resolveEffectiveModules(
+    resolveSiteConfig(siteKey).modules,
+    settings.modules?.is_active
+  );
+  if (!effectiveModules.articles || page?.is_active === false) {
+    notFound();
+  }
+
+  const sections = (page?.sections ?? []).filter((s) => s.is_active !== false);
   const heroSection = sections.find((s) => s.key === "hero");
   const instagramSection = sections.find((s) => s.key === "instagram");
 

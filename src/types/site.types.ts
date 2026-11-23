@@ -15,6 +15,17 @@ export interface SiteModuleFlags {
   partners: boolean;
   faqs: boolean;
   bookingRoute: boolean;
+  branches?: boolean;
+  businessUnits?: boolean;
+  careers?: boolean;
+  contact?: boolean;
+}
+
+export interface EffectiveModuleFlags extends SiteModuleFlags {
+  branches: boolean;
+  businessUnits: boolean;
+  careers: boolean;
+  contact: boolean;
 }
 
 export interface SiteConfig {

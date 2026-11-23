@@ -1,14 +1,63 @@
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import { httpClient } from "@/lib/http-client";
 import type {
-  SettingsBulkRequestPayload,
+  SiteModulesActiveFlags,
+  SiteModulesSettings,
   SiteSettings,
 } from "@/types/site-settings.types";
 import { cacheLife, cacheTag } from "next/cache";
 
-interface AdminSettingRow {
+interface RawSettingRow {
   key?: unknown;
   value?: unknown;
+}
+
+const MODULE_FLAG_KEYS: readonly (keyof SiteModulesActiveFlags)[] = [
+  "services",
+  "portfolios",
+  "branches",
+  "business_units",
+  "careers",
+  "news",
+  "contact",
+];
+
+function extractModulesFlags(rawValue: unknown): SiteModulesActiveFlags {
+  if (typeof rawValue !== "object" || rawValue === null) {
+    return {};
+  }
+  const source = rawValue as Record<string, unknown>;
+  const flags: SiteModulesActiveFlags = {};
+
+  for (const key of MODULE_FLAG_KEYS) {
+    if (typeof source[key] === "boolean") {
+      flags[key] = source[key];
+    }
+  }
+  return flags;
+}
+
+function normalizeModulesGroup(groupData: unknown): SiteModulesSettings {
+  if (typeof groupData !== "object" || groupData === null) {
+    return {};
+  }
+
+  if (Array.isArray(groupData)) {
+    for (const rawItem of groupData) {
+      if (typeof rawItem === "object" && rawItem !== null) {
+        const row = rawItem as RawSettingRow;
+        if (row.key === "is_active") {
+          return { is_active: extractModulesFlags(row.value) };
+        }
+      }
+    }
+    return {};
+  }
+
+  const record = groupData as Record<string, unknown>;
+  return record.is_active !== undefined
+    ? { is_active: extractModulesFlags(record.is_active) }
+    : {};
 }
 
 function normalizeSettingGroup(groupData: unknown): Record<string, string> {
@@ -16,7 +65,7 @@ function normalizeSettingGroup(groupData: unknown): Record<string, string> {
   if (Array.isArray(groupData)) {
     for (const rawItem of groupData) {
       if (typeof rawItem === "object" && rawItem !== null) {
-        const item = rawItem as AdminSettingRow;
+        const item = rawItem as RawSettingRow;
         if (typeof item.key === "string" && typeof item.value === "string") {
           result[item.key] = item.value;
         }
@@ -43,7 +92,10 @@ function normalizeSettingsPayload(raw: unknown): SiteSettings {
   const normalized: SiteSettings = {};
 
   for (const [groupKey, groupVal] of Object.entries(record)) {
-    normalized[groupKey] = normalizeSettingGroup(groupVal);
+    normalized[groupKey] =
+      groupKey === "modules"
+        ? normalizeModulesGroup(groupVal)
+        : normalizeSettingGroup(groupVal);
   }
   return normalized;
 }
@@ -59,34 +111,4 @@ export async function getSiteSettings(siteKey?: string): Promise<SiteSettings> {
   } catch {
     return {};
   }
-}
-
-export async function getAdminSettings(
-  token: string,
-  siteKey?: string
-): Promise<SiteSettings> {
-  try {
-    const raw = await httpClient.get<unknown>("/admin/settings", {
-      token,
-      siteKey,
-    });
-    return normalizeSettingsPayload(raw);
-  } catch {
-    return {};
-  }
-}
-
-export async function updateAdminSettings(
-  payload: SettingsBulkRequestPayload,
-  token: string,
-  siteKey?: string
-): Promise<{ success: boolean; message?: string }> {
-  return httpClient.post<{ success: boolean; message?: string }>(
-    "/admin/settings",
-    payload,
-    {
-      token,
-      siteKey,
-    }
-  );
 }

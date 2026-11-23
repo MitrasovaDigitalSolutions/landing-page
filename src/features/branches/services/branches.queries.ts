@@ -10,7 +10,3 @@ export async function getBranches(siteKey?: string): Promise<Branch[]> {
 
   return httpClient.get<Branch[]>("/branches", { siteKey });
 }
-
-export async function getAdminBranches(token: string): Promise<Branch[]> {
-  return httpClient.get<Branch[]>("/admin/branches", { token });
-}

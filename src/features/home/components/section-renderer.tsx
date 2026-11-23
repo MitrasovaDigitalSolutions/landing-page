@@ -35,7 +35,9 @@ export function SectionRenderer({
 }: SectionRendererProps): React.JSX.Element | null {
   const keyFilter = allowedKeys ? new Set(allowedKeys) : SUPPORTED_SECTION_KEYS;
   const visibleSections = sections
-    .filter((section) => keyFilter.has(section.key))
+    .filter(
+      (section) => section.is_active !== false && keyFilter.has(section.key)
+    )
     .sort((a, b) => a.order - b.order);
 
   if (visibleSections.length === 0) {

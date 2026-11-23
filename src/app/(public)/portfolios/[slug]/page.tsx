@@ -1,5 +1,7 @@
 import { Container } from "@/components/layout/container";
 import { SmartImage } from "@/components/shared/smart-image";
+import { env } from "@/config/env";
+import { resolveEffectiveModules, resolveSiteConfig } from "@/config/sites";
 import { InquirySection } from "@/features/inquiry/components/inquiry-section";
 import { getPortfolioBySlug } from "@/features/portfolio/services/portfolio.queries";
 import { getSiteSettings } from "@/services/api/settings.service";
@@ -20,12 +22,18 @@ export default async function PortfolioDetailPage({
   params,
 }: PortfolioDetailPageProps): Promise<React.JSX.Element> {
   const { slug } = await params;
+  const siteKey = env.NEXT_PUBLIC_SITE_KEY;
   const [portfolio, settings] = await Promise.all([
-    getPortfolioBySlug(slug).catch(() => null),
-    getSiteSettings(),
+    getPortfolioBySlug(slug, siteKey).catch(() => null),
+    getSiteSettings(siteKey),
   ]);
 
-  if (!portfolio) {
+  const effectiveModules = resolveEffectiveModules(
+    resolveSiteConfig(siteKey).modules,
+    settings.modules?.is_active
+  );
+
+  if (!effectiveModules.portfolios || !portfolio) {
     notFound();
   }
 
