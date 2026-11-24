@@ -227,5 +227,16 @@ export function buildServiceJsonLd(params: {
     ...(service.service_type?.name
       ? { serviceType: service.service_type.name }
       : {}),
+    ...(service.price !== null &&
+    service.price !== undefined &&
+    Number.isFinite(service.price)
+      ? {
+          offers: {
+            "@type": "Offer",
+            price: service.price,
+            priceCurrency: "IDR",
+          },
+        }
+      : {}),
   };
 }

@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { AboutStatsSection } from "@/features/home/components/about-stats-section";
 import { CtaBannerSection } from "@/features/home/components/cta-banner-section";
 import { FeaturedProductsSection } from "@/features/home/components/featured-products-section";
@@ -15,11 +16,13 @@ interface SectionRendererProps {
   services?: Service[];
   contact?: SiteContactSettings;
   legal?: SiteLegalSettings;
+  renderProductsSection?: (section: PageSection) => ReactNode;
 }
 
 const SUPPORTED_SECTION_KEYS = new Set<string>([
   "hero",
   "featured",
+  "products",
   "office",
   "about",
   "vision_mission",
@@ -32,6 +35,7 @@ export function SectionRenderer({
   services,
   contact,
   legal,
+  renderProductsSection,
 }: SectionRendererProps): React.JSX.Element | null {
   const keyFilter = allowedKeys ? new Set(allowedKeys) : SUPPORTED_SECTION_KEYS;
   const visibleSections = sections
@@ -58,6 +62,8 @@ export function SectionRenderer({
                 services={services}
               />
             );
+          case "products":
+            return renderProductsSection ? renderProductsSection(section) : null;
           case "office":
             return (
               <HeadOfficeSection

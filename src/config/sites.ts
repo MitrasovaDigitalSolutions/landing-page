@@ -27,9 +27,9 @@ export const SITES_REGISTRY: Record<TenantSlug, SiteConfig> = {
   konveksi: {
     slug: "konveksi",
     apiKey: "key-konveksi-12345",
-    name: "Mitrasova Konveksi & Garment",
-    shortName: "Mitrasova Konveksi",
-    defaultBrandColor: "#DC2626",
+    name: "Miset",
+    shortName: "Miset",
+    defaultBrandColor: "#0F766E",
     modules: {
       quoteUpload: true,
       portfolios: true,
@@ -39,6 +39,25 @@ export const SITES_REGISTRY: Record<TenantSlug, SiteConfig> = {
       partners: true,
       faqs: true,
       bookingRoute: false,
+      businessUnits: false,
+    },
+  },
+  miset: {
+    slug: "miset",
+    apiKey: "key-miset-12345",
+    name: "Miset",
+    shortName: "Miset",
+    defaultBrandColor: "#0F766E",
+    modules: {
+      quoteUpload: true,
+      portfolios: true,
+      services: true,
+      articles: true,
+      testimonials: true,
+      partners: true,
+      faqs: true,
+      bookingRoute: false,
+      businessUnits: false,
     },
   },
   teknologi: {

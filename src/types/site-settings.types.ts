@@ -40,6 +40,12 @@ export interface SiteLegalSettings {
   copyright?: string;
 }
 
+export type ServicesLayout = "accordion" | "carousel" | "grid";
+
+export interface SiteServicesSettings {
+  layout?: string;
+}
+
 export interface SiteModulesActiveFlags {
   services?: boolean;
   portfolios?: boolean;
@@ -60,6 +66,7 @@ export interface SiteSettings {
   social?: SiteSocialSettings;
   legal?: SiteLegalSettings;
   seo?: SiteSeoSettings;
+  services?: SiteServicesSettings;
   modules?: SiteModulesSettings;
   [group: string]: unknown;
 }

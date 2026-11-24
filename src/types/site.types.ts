@@ -1,6 +1,7 @@
 export type TenantSlug =
   | "ksp"
   | "konveksi"
+  | "miset"
   | "teknologi"
   | "percetakan"
   | "transportasi"

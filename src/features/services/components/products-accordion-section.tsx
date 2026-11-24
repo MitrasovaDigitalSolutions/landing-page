@@ -31,7 +31,7 @@ export function ProductsAccordionSection({
   types,
   sectionId = "featured",
   badge = "Layanan Kami",
-  title = "Produk Simpanan & Pinjaman",
+  title = "Produk & Layanan",
   subtitle = "Klik produk pada masing-masing kategori untuk melihat ringkasan fitur dan ketentuannya.",
   showAllPageLink = false,
   defaultExpandFirst = false,

@@ -15,18 +15,40 @@ export async function getServiceTypes(siteKey?: string): Promise<ServiceType[]> 
   }
 }
 
+export interface GetServicesOptions {
+  serviceType?: string;
+  featured?: boolean;
+  perPage?: number;
+}
+
 export async function getServices(
-  serviceTypeSlug?: string,
+  optionsOrType?: string | GetServicesOptions,
   siteKey?: string
 ): Promise<Service[]> {
   "use cache";
   cacheLife("cms");
   cacheTag(CACHE_TAGS.services(siteKey));
 
+  const options: GetServicesOptions =
+    typeof optionsOrType === "string"
+      ? { serviceType: optionsOrType }
+      : (optionsOrType ?? {});
+
+  const params: Record<string, string | number> = {};
+  if (options.serviceType) {
+    params.service_type = options.serviceType;
+  }
+  if (options.featured) {
+    params.featured = 1;
+  }
+  if (options.perPage !== undefined) {
+    params.per_page = options.perPage;
+  }
+
   try {
     return await httpClient.get<Service[]>("/services", {
       siteKey,
-      params: serviceTypeSlug ? { service_type: serviceTypeSlug } : undefined,
+      params: Object.keys(params).length > 0 ? params : undefined,
     });
   } catch {
     return [];

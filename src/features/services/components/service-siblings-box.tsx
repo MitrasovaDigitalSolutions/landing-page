@@ -20,7 +20,7 @@ export function ServiceSiblingsBox({
       <p className="text-xs font-bold tracking-wider text-slate-500 uppercase">
         Produk {typeLabel} Lainnya
       </p>
-      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
         {services.map((item) => (
           <Link
             key={item.id}

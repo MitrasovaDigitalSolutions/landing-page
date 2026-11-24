@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { HomeServicesSlot } from "@/app/(public)/_components/home-services-slot";
 import { JsonLd } from "@/components/shared/json-ld";
 import { env } from "@/config/env";
 import { resolveEffectiveModules, resolveSiteConfig } from "@/config/sites";
@@ -17,11 +18,11 @@ import { PartnersSection } from "@/features/partners/components/partners-marquee
 import { getPartners } from "@/features/partners/services/partners.queries";
 import { PortfolioSection } from "@/features/portfolio/components/portfolio-section";
 import { getPortfolios } from "@/features/portfolio/services/portfolio.queries";
-import { ProductsAccordionSection } from "@/features/services/components/products-accordion-section";
 import {
   getServices,
   getServiceTypes,
 } from "@/features/services/services/services.queries";
+import { resolveServicesLayout } from "@/features/services/utils/service-display";
 import { TestimonialsSection } from "@/features/testimonials/components/testimonials-carousel";
 import { getTestimonials } from "@/features/testimonials/services/testimonials.queries";
 import { buildPageMetadata, pickNonEmptyText, resolveSiteUrl } from "@/lib/seo";
@@ -68,12 +69,11 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-export default async function HomePage(): Promise<React.JSX.Element> {
-  const siteKey = env.NEXT_PUBLIC_SITE_KEY;
-
+async function loadHomePageData(siteKey: string) {
   const [
     pageResult,
     servicesResult,
+    featuredServicesResult,
     typesResult,
     portfoliosResult,
     testimonialsResult,
@@ -83,71 +83,83 @@ export default async function HomePage(): Promise<React.JSX.Element> {
     articleCategoriesResult,
     settings,
   ] = await Promise.all([
-    Promise.allSettled([getHomePageDetail(siteKey)]).then((r) =>
-      unwrapSettled(r[0], null)
-    ),
-    Promise.allSettled([getServices(undefined, siteKey)]).then((r) =>
+    Promise.allSettled([getHomePageDetail(siteKey)]).then((r) => unwrapSettled(r[0], null)),
+    Promise.allSettled([getServices(undefined, siteKey)]).then((r) => unwrapSettled(r[0], [])),
+    Promise.allSettled([getServices({ featured: true, perPage: 20 }, siteKey)]).then((r) =>
       unwrapSettled(r[0], [])
     ),
-    Promise.allSettled([getServiceTypes(siteKey)]).then((r) =>
-      unwrapSettled(r[0], [])
-    ),
-    Promise.allSettled([getPortfolios(siteKey)]).then((r) =>
-      unwrapSettled(r[0], [])
-    ),
-    Promise.allSettled([getTestimonials(siteKey)]).then((r) =>
-      unwrapSettled(r[0], [])
-    ),
-    Promise.allSettled([getPartners(siteKey)]).then((r) =>
-      unwrapSettled(r[0], [])
-    ),
-    Promise.allSettled([getFaqs(siteKey)]).then((r) =>
-      unwrapSettled(r[0], [])
-    ),
-    Promise.allSettled([getArticles(undefined, siteKey)]).then((r) =>
-      unwrapSettled(r[0], [])
-    ),
-    Promise.allSettled([getArticleCategories(siteKey)]).then((r) =>
-      unwrapSettled(r[0], [])
-    ),
+    Promise.allSettled([getServiceTypes(siteKey)]).then((r) => unwrapSettled(r[0], [])),
+    Promise.allSettled([getPortfolios(siteKey)]).then((r) => unwrapSettled(r[0], [])),
+    Promise.allSettled([getTestimonials(siteKey)]).then((r) => unwrapSettled(r[0], [])),
+    Promise.allSettled([getPartners(siteKey)]).then((r) => unwrapSettled(r[0], [])),
+    Promise.allSettled([getFaqs(siteKey)]).then((r) => unwrapSettled(r[0], [])),
+    Promise.allSettled([getArticles(undefined, siteKey)]).then((r) => unwrapSettled(r[0], [])),
+    Promise.allSettled([getArticleCategories(siteKey)]).then((r) => unwrapSettled(r[0], [])),
     getSiteSettings(siteKey),
   ]);
 
   const config = resolveSiteConfig(siteKey);
-  const effectiveModules = resolveEffectiveModules(
-    config.modules,
-    settings.modules?.is_active
-  );
-  const sections = (pageResult?.sections ?? []).filter(
-    (s) => s.is_active !== false
-  );
-  const featuredSection = sections.find((s) => s.key === "featured");
-  const officeSection = sections.find((s) => s.key === "office");
-  const faqJsonLd = buildFaqJsonLd(faqsResult);
+  const sections = (pageResult?.sections ?? []).filter((s) => s.is_active !== false);
+  const productsSection = sections.find((s) => s.key === "products");
+  const rawLimit = productsSection?.payload?.limit;
+  const productsLimit = typeof rawLimit === "number" && rawLimit > 0 ? rawLimit : 12;
+  const featuredServices = (
+    featuredServicesResult.length > 0 ? featuredServicesResult : servicesResult
+  ).slice(0, productsLimit);
+
+  return {
+    effectiveModules: resolveEffectiveModules(config.modules, settings.modules?.is_active),
+    servicesLayout: resolveServicesLayout(settings.services?.layout),
+    sections,
+    servicesResult,
+    featuredServices,
+    typesResult,
+    portfoliosResult,
+    testimonialsResult,
+    partnersResult,
+    faqsResult,
+    articlesResult,
+    articleCategoriesResult,
+    settings,
+    officeSection: sections.find((s) => s.key === "office"),
+  };
+}
+
+export default async function HomePage(): Promise<React.JSX.Element> {
+  const {
+    effectiveModules,
+    servicesLayout,
+    sections,
+    servicesResult,
+    featuredServices,
+    typesResult,
+    portfoliosResult,
+    testimonialsResult,
+    partnersResult,
+    faqsResult,
+    articlesResult,
+    articleCategoriesResult,
+    settings,
+    officeSection,
+  } = await loadHomePageData(env.NEXT_PUBLIC_SITE_KEY);
 
   return (
     <div className="flex flex-col">
-      <JsonLd data={faqJsonLd} />
+      <JsonLd data={buildFaqJsonLd(faqsResult)} />
       <SectionRenderer
         sections={sections}
         allowedKeys={TOP_SECTION_KEYS}
         services={servicesResult}
       />
       <PartnersSection partners={partnersResult} />
-      {effectiveModules.services ? (
-        <ProductsAccordionSection
-          sectionId="featured"
-          services={servicesResult}
-          types={typesResult}
-          badge={featuredSection?.payload?.badge ?? "Layanan Kami"}
-          title={featuredSection?.title ?? "Produk Simpanan & Pinjaman"}
-          subtitle={
-            featuredSection?.body ??
-            "Klik produk pada masing-masing kategori untuk melihat ringkasan fitur dan ketentuannya."
-          }
-          showAllPageLink
-        />
-      ) : null}
+      <HomeServicesSlot
+        enabled={effectiveModules.services}
+        layout={servicesLayout}
+        sections={sections}
+        services={servicesResult}
+        featuredServices={featuredServices}
+        types={typesResult}
+      />
       {effectiveModules.portfolios ? (
         <PortfolioSection portfolios={portfoliosResult} />
       ) : null}

@@ -1,17 +1,21 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Container } from "@/components/layout/container";
 import { PageHero } from "@/components/layout/page-hero";
+import { SectionHeading } from "@/components/layout/section-heading";
 import { env } from "@/config/env";
 import { resolveEffectiveModules, resolveSiteConfig } from "@/config/sites";
 import { HeroCarousel } from "@/features/home/components/hero-carousel";
 import { getPageBySlug } from "@/features/home/services/home.queries";
 import { resolveHeroSlides } from "@/features/home/utils/section-normalizer";
+import { ProductGrid } from "@/features/services/components/product-grid";
 import { ProductsAccordionSection } from "@/features/services/components/products-accordion-section";
 import { ProductsCtaBanner } from "@/features/services/components/products-cta-banner";
 import {
   getServices,
   getServiceTypes,
 } from "@/features/services/services/services.queries";
+import { resolveServicesLayout } from "@/features/services/utils/service-display";
 import { buildPageMetadata, resolveSiteUrl } from "@/lib/seo";
 import { getSiteSettings } from "@/services/api/settings.service";
 import { unwrapSettled } from "@/utils/promise";
@@ -43,7 +47,7 @@ export default async function ProdukPage(): Promise<React.JSX.Element> {
     Promise.allSettled([getPageBySlug("produk", siteKey)]).then((r) =>
       unwrapSettled(r[0], null)
     ),
-    Promise.allSettled([getServices(undefined, siteKey)]).then((r) =>
+    Promise.allSettled([getServices({ perPage: 100 }, siteKey)]).then((r) =>
       unwrapSettled(r[0], [])
     ),
     Promise.allSettled([getServiceTypes(siteKey)]).then((r) =>
@@ -60,6 +64,7 @@ export default async function ProdukPage(): Promise<React.JSX.Element> {
     notFound();
   }
 
+  const servicesLayout = resolveServicesLayout(settings.services?.layout);
   const sections = (page?.sections ?? []).filter((s) => s.is_active !== false);
   const heroSection = sections.find((s) => s.key === "hero");
   const ctaSection = sections.find((s) => s.key === "cta");
@@ -73,6 +78,14 @@ export default async function ProdukPage(): Promise<React.JSX.Element> {
     heroSection?.payload?.cta_label ??
     ctaSection?.payload?.button_label ??
     "Hubungi Kami";
+
+  const catalogTitle =
+    heroSection?.title ?? page?.title ?? "Daftar Produk & Layanan";
+  const catalogSubtitle =
+    heroSection?.body ??
+    (servicesLayout === "accordion"
+      ? "Klik salah satu produk pada kategori di bawah untuk melihat syarat, keunggulan, serta ketentuannya."
+      : "Pilih produk untuk melihat detail spesifikasi, harga, dan informasi pemesanan.");
 
   return (
     <div className="flex flex-col">
@@ -91,15 +104,41 @@ export default async function ProdukPage(): Promise<React.JSX.Element> {
         />
       )}
 
-      <ProductsAccordionSection
-        sectionId="katalog"
-        services={services}
-        types={serviceTypes}
-        badge="Katalog Produk"
-        title="Daftar Produk Simpanan & Pinjaman"
-        subtitle="Klik salah satu produk untuk melihat syarat pembukaan rekening, keunggulan, serta ketentuannya."
-        showAllPageLink={false}
-      />
+      {servicesLayout === "accordion" ? (
+        <ProductsAccordionSection
+          sectionId="katalog"
+          services={services}
+          types={serviceTypes}
+          badge="Katalog Produk"
+          title={catalogTitle}
+          subtitle={catalogSubtitle}
+          showAllPageLink={false}
+        />
+      ) : (
+        <section
+          id="katalog"
+          className="border-b border-slate-200/80 bg-[#F7F9F7] py-10 md:py-14"
+        >
+          <Container>
+            <SectionHeading
+              badge="Katalog Produk"
+              title={catalogTitle}
+              subtitle={catalogSubtitle}
+            />
+            {services.length > 0 ? (
+              <ProductGrid
+                services={services}
+                types={serviceTypes}
+                enableCategoryFilter
+              />
+            ) : (
+              <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-sm text-slate-500">
+                Belum ada produk yang tersedia saat ini.
+              </div>
+            )}
+          </Container>
+        </section>
+      )}
 
       <ProductsCtaBanner
         section={ctaSection}

@@ -13,6 +13,9 @@ function resolveServicePoints(service: Service): string[] {
   if (service.features && service.features.length > 0) {
     return service.features.filter(Boolean);
   }
+  if (!service.body) {
+    return [];
+  }
   return service.body
     .split(/\r?\n/)
     .map((line) => line.trim())
