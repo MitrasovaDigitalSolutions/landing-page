@@ -66,8 +66,11 @@ function normalizeSettingGroup(groupData: unknown): Record<string, string> {
     for (const rawItem of groupData) {
       if (typeof rawItem === "object" && rawItem !== null) {
         const item = rawItem as RawSettingRow;
-        if (typeof item.key === "string" && typeof item.value === "string") {
-          result[item.key] = item.value;
+        if (
+          typeof item.key === "string" &&
+          (typeof item.value === "string" || typeof item.value === "boolean")
+        ) {
+          result[item.key] = String(item.value);
         }
       }
     }
@@ -76,8 +79,8 @@ function normalizeSettingGroup(groupData: unknown): Record<string, string> {
 
   if (typeof groupData === "object" && groupData !== null) {
     for (const [key, val] of Object.entries(groupData)) {
-      if (typeof val === "string") {
-        result[key] = val;
+      if (typeof val === "string" || typeof val === "boolean") {
+        result[key] = String(val);
       }
     }
   }

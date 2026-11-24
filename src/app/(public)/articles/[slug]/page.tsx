@@ -1,4 +1,6 @@
+import type { Metadata } from "next";
 import { Container } from "@/components/layout/container";
+import { JsonLd } from "@/components/shared/json-ld";
 import { SmartImage } from "@/components/shared/smart-image";
 import { env } from "@/config/env";
 import { resolveEffectiveModules, resolveSiteConfig } from "@/config/sites";
@@ -7,6 +9,15 @@ import {
   getArticleBySlug,
   getArticles,
 } from "@/features/articles/services/articles.queries";
+import {
+  buildPageMetadata,
+  resolveSiteUrl,
+  toAbsoluteSiteUrl,
+} from "@/lib/seo";
+import {
+  buildArticleJsonLd,
+  buildBreadcrumbJsonLd,
+} from "@/lib/seo-jsonld";
 import { getSiteSettings } from "@/services/api/settings.service";
 import { formatDateId } from "@/utils/format-date";
 import { resolveMediaUrl } from "@/utils/media";
@@ -19,6 +30,35 @@ export const instant = false;
 
 interface ArticleDetailPageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: ArticleDetailPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const siteKey = env.NEXT_PUBLIC_SITE_KEY;
+  const config = resolveSiteConfig(siteKey);
+  const [article, settings] = await Promise.all([
+    getArticleBySlug(slug, siteKey),
+    getSiteSettings(siteKey),
+  ]);
+
+  const title = article?.title ?? "Artikel & Berita";
+  const imagePathOrUrl = article
+    ? resolveMediaUrl(article.thumbnail_url, article.thumbnail_path)
+    : null;
+
+  return buildPageMetadata({
+    title,
+    description: article?.excerpt,
+    path: `/articles/${slug}`,
+    siteUrl: resolveSiteUrl(settings),
+    config,
+    settings,
+    imagePathOrUrl,
+    type: "article",
+    publishedTime: article?.published_at,
+  });
 }
 
 export default async function ArticleDetailPage({
@@ -49,9 +89,28 @@ export default async function ArticleDetailPage({
   );
   const dateText = formatDateId(article.published_at);
   const authorName = article.author?.name ?? "Tim Redaksi";
+  const siteUrl = resolveSiteUrl(settings);
+  const publisherName =
+    settings.general?.site_title ?? resolveSiteConfig(siteKey).name;
+  const publisherLogo = toAbsoluteSiteUrl(
+    resolveMediaUrl(settings.general?.logo_url, settings.general?.logo_path),
+    siteUrl
+  );
+  const structuredData = [
+    buildArticleJsonLd({ article, siteUrl, publisherName, publisherLogo }),
+    buildBreadcrumbJsonLd(
+      [
+        { name: "Beranda", path: "/" },
+        { name: "Berita", path: "/berita" },
+        { name: article.title, path: `/articles/${article.slug}` },
+      ],
+      siteUrl
+    ),
+  ];
 
   return (
     <div>
+      <JsonLd data={structuredData} />
       <article className="border-b border-slate-200 bg-white py-14 md:py-20">
         <Container size="narrow">
           <Link

@@ -5,6 +5,18 @@ export interface SiteGeneralSettings {
   meta_keywords?: string;
   logo_path?: string;
   logo_url?: string;
+  favicon_path?: string;
+  favicon_url?: string;
+}
+
+export interface SiteSeoSettings {
+  meta_title?: string;
+  meta_description?: string;
+  alternate_names?: string;
+  canonical_domain?: string;
+  schema_type?: string;
+  google_verification?: string;
+  robots_index?: string | boolean;
 }
 
 export interface SiteContactSettings {
@@ -47,6 +59,7 @@ export interface SiteSettings {
   contact?: SiteContactSettings;
   social?: SiteSocialSettings;
   legal?: SiteLegalSettings;
+  seo?: SiteSeoSettings;
   modules?: SiteModulesSettings;
   [group: string]: unknown;
 }

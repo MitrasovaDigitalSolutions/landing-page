@@ -1,12 +1,16 @@
+import type { Metadata } from "next";
 import { Container } from "@/components/layout/container";
+import { JsonLd } from "@/components/shared/json-ld";
 import { SmartImage } from "@/components/shared/smart-image";
 import { env } from "@/config/env";
 import { resolveEffectiveModules, resolveSiteConfig } from "@/config/sites";
 import { InquirySection } from "@/features/inquiry/components/inquiry-section";
 import { getPortfolioBySlug } from "@/features/portfolio/services/portfolio.queries";
+import { buildPageMetadata, resolveSiteUrl } from "@/lib/seo";
+import { buildBreadcrumbJsonLd } from "@/lib/seo-jsonld";
 import { getSiteSettings } from "@/services/api/settings.service";
 import { formatDateId } from "@/utils/format-date";
-import { resolveGalleryUrls } from "@/utils/media";
+import { resolveGalleryUrls, resolveMediaUrl } from "@/utils/media";
 import { ArrowLeft, Briefcase, Calendar } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -16,6 +20,33 @@ export const instant = false;
 
 interface PortfolioDetailPageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: PortfolioDetailPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const siteKey = env.NEXT_PUBLIC_SITE_KEY;
+  const config = resolveSiteConfig(siteKey);
+  const [portfolio, settings] = await Promise.all([
+    getPortfolioBySlug(slug, siteKey),
+    getSiteSettings(siteKey),
+  ]);
+
+  const title = portfolio?.title ?? "Detail Portofolio";
+  const imagePathOrUrl = portfolio
+    ? resolveMediaUrl(portfolio.thumbnail_url, portfolio.thumbnail_path)
+    : null;
+
+  return buildPageMetadata({
+    title,
+    description: portfolio?.description,
+    path: `/portfolios/${slug}`,
+    siteUrl: resolveSiteUrl(settings),
+    config,
+    settings,
+    imagePathOrUrl,
+  });
 }
 
 export default async function PortfolioDetailPage({
@@ -43,9 +74,19 @@ export default async function PortfolioDetailPage({
   );
   const formattedDate =
     formatDateId(portfolio.completion_date) || portfolio.completion_date;
+  const siteUrl = resolveSiteUrl(settings);
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd(
+    [
+      { name: "Beranda", path: "/" },
+      { name: "Portofolio", path: "/#portfolios" },
+      { name: portfolio.title, path: `/portfolios/${portfolio.slug}` },
+    ],
+    siteUrl
+  );
 
   return (
     <div>
+      <JsonLd data={breadcrumbJsonLd} />
       <section className="relative overflow-hidden border-b border-slate-200/80 bg-gradient-to-br from-primary/8 via-sky-50/50 to-white py-14 md:py-20">
         <Container>
           <Link

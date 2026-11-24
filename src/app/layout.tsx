@@ -1,11 +1,21 @@
 import { Toaster } from "@/components/ui/sonner";
 import { env } from "@/config/env";
 import { resolveSiteConfig } from "@/config/sites";
+import {
+  buildSiteIcons,
+  isIndexingEnabled,
+  parseCommaList,
+  pickNonEmptyText,
+  resolveSiteFaviconUrl,
+  resolveSiteUrl,
+  toAbsoluteSiteUrl,
+} from "@/lib/seo";
 import { ProgressProvider } from "@/providers/progress-provider";
 import { QueryProvider } from "@/providers/query-provider";
 import { SiteProvider } from "@/providers/site-provider";
 import { getSiteSettings } from "@/services/api/settings.service";
 import { generateBrandCssVariables } from "@/utils/color";
+import { resolveMediaUrl } from "@/utils/media";
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
@@ -19,28 +29,73 @@ const fontSans = Plus_Jakarta_Sans({
 export async function generateMetadata(): Promise<Metadata> {
   const siteKey = env.NEXT_PUBLIC_SITE_KEY;
   const config = resolveSiteConfig(siteKey);
+  const settings = await getSiteSettings(siteKey);
 
-  try {
-    const settings = await getSiteSettings(siteKey);
-    const title = settings.general?.site_title ?? config.name;
-    const description =
-      settings.general?.tagline ??
-      `Layanan resmi dan terpercaya dari ${config.name}`;
+  const siteUrl = resolveSiteUrl(settings);
+  const siteName =
+    pickNonEmptyText(settings.general?.site_title) ?? config.name;
+  const tagline = pickNonEmptyText(settings.general?.tagline);
+  const defaultTitle =
+    pickNonEmptyText(settings.seo?.meta_title) ??
+    (tagline ? `${siteName} — ${tagline}` : siteName);
+  const description =
+    pickNonEmptyText(settings.seo?.meta_description, tagline) ??
+    `Layanan resmi dan terpercaya dari ${siteName}.`;
+  const keywords = parseCommaList(settings.general?.meta_keywords);
+  const faviconUrl = resolveSiteFaviconUrl(settings);
+  const ogImage = toAbsoluteSiteUrl(
+    resolveMediaUrl(settings.general?.logo_url, settings.general?.logo_path),
+    siteUrl
+  );
+  const indexable = isIndexingEnabled(settings);
+  const googleToken =
+    pickNonEmptyText(settings.seo?.google_verification) ??
+    env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
 
-    return {
-      title: {
-        default: title,
-        template: `%s | ${title}`,
-      },
+  return {
+    metadataBase: new URL(siteUrl),
+    title: {
+      default: defaultTitle,
+      template: `%s | ${siteName}`,
+    },
+    description,
+    ...(keywords.length > 0 ? { keywords } : {}),
+    applicationName: siteName,
+    authors: [{ name: siteName, url: siteUrl }],
+    creator: siteName,
+    publisher: siteName,
+    alternates: { canonical: "/" },
+    icons: buildSiteIcons(faviconUrl),
+    openGraph: {
+      type: "website",
+      locale: "id_ID",
+      url: siteUrl,
+      siteName,
+      title: defaultTitle,
       description,
-      keywords: settings.general?.meta_keywords,
-    };
-  } catch {
-    return {
-      title: config.name,
-      description: `Portal resmi ${config.name}`,
-    };
-  }
+      ...(ogImage ? { images: [{ url: ogImage, alt: siteName }] } : {}),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: defaultTitle,
+      description,
+      ...(ogImage ? { images: [ogImage] } : {}),
+    },
+    robots: indexable
+      ? {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          "max-video-preview": -1,
+          "max-image-preview": "large",
+          "max-snippet": -1,
+        },
+      }
+      : { index: false, follow: false },
+    ...(googleToken ? { verification: { google: googleToken } } : {}),
+  };
 }
 
 export default async function RootLayout({

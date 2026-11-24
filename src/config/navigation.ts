@@ -42,7 +42,7 @@ function isSlugAllowedByModules(
   }
 }
 
-function isPublicPageVisible(
+export function isPublicPageVisible(
   page: PageDetail,
   modules?: EffectiveModuleFlags
 ): boolean {

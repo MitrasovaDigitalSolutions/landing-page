@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import { JsonLd } from "@/components/shared/json-ld";
 import { env } from "@/config/env";
 import { resolveEffectiveModules, resolveSiteConfig } from "@/config/sites";
 import { ArticlesSection } from "@/features/articles/components/articles-section";
@@ -9,6 +11,7 @@ import { FaqSection } from "@/features/faq/components/faq-accordion";
 import { getFaqs } from "@/features/faq/services/faq.queries";
 import { SectionRenderer } from "@/features/home/components/section-renderer";
 import { getHomePageDetail } from "@/features/home/services/home.queries";
+import { resolveHeroSlides } from "@/features/home/utils/section-normalizer";
 import { ContactHubSection } from "@/features/inquiry/components/contact-hub-section";
 import { PartnersSection } from "@/features/partners/components/partners-marquee";
 import { getPartners } from "@/features/partners/services/partners.queries";
@@ -21,13 +24,49 @@ import {
 } from "@/features/services/services/services.queries";
 import { TestimonialsSection } from "@/features/testimonials/components/testimonials-carousel";
 import { getTestimonials } from "@/features/testimonials/services/testimonials.queries";
+import { buildPageMetadata, pickNonEmptyText, resolveSiteUrl } from "@/lib/seo";
+import { buildFaqJsonLd } from "@/lib/seo-jsonld";
 import { getSiteSettings } from "@/services/api/settings.service";
+import { resolveMediaUrl } from "@/utils/media";
 import { unwrapSettled } from "@/utils/promise";
 
 export const instant = false;
 
 const TOP_SECTION_KEYS = ["hero", "about", "vision_mission"];
 const BOTTOM_SECTION_KEYS = ["cta"];
+
+export async function generateMetadata(): Promise<Metadata> {
+  const siteKey = env.NEXT_PUBLIC_SITE_KEY;
+  const config = resolveSiteConfig(siteKey);
+  const [page, settings] = await Promise.all([
+    getHomePageDetail(siteKey),
+    getSiteSettings(siteKey),
+  ]);
+
+  const siteUrl = resolveSiteUrl(settings);
+  const siteName =
+    pickNonEmptyText(settings.general?.site_title) ?? config.name;
+  const tagline = pickNonEmptyText(settings.general?.tagline);
+  const title =
+    pickNonEmptyText(settings.seo?.meta_title, page?.meta_title) ??
+    (tagline ? `${siteName} — ${tagline}` : siteName);
+
+  const heroSection = page?.sections?.find((s) => s.key === "hero");
+  const firstSlide = heroSection ? resolveHeroSlides(heroSection).at(0) : undefined;
+  const heroImage = firstSlide
+    ? resolveMediaUrl(firstSlide.image_url, firstSlide.image_path)
+    : null;
+
+  return buildPageMetadata({
+    title,
+    description: settings.seo?.meta_description ?? page?.meta_desc,
+    path: "/",
+    siteUrl,
+    config,
+    settings,
+    imagePathOrUrl: heroImage,
+  });
+}
 
 export default async function HomePage(): Promise<React.JSX.Element> {
   const siteKey = env.NEXT_PUBLIC_SITE_KEY;
@@ -84,9 +123,11 @@ export default async function HomePage(): Promise<React.JSX.Element> {
   );
   const featuredSection = sections.find((s) => s.key === "featured");
   const officeSection = sections.find((s) => s.key === "office");
+  const faqJsonLd = buildFaqJsonLd(faqsResult);
 
   return (
     <div className="flex flex-col">
+      <JsonLd data={faqJsonLd} />
       <SectionRenderer
         sections={sections}
         allowedKeys={TOP_SECTION_KEYS}

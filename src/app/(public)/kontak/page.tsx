@@ -5,6 +5,7 @@ import { env } from "@/config/env";
 import { resolveEffectiveModules, resolveSiteConfig } from "@/config/sites";
 import { getPageBySlug } from "@/features/home/services/home.queries";
 import { ContactHubSection } from "@/features/inquiry/components/contact-hub-section";
+import { buildPageMetadata, resolveSiteUrl } from "@/lib/seo";
 import { getSiteSettings } from "@/services/api/settings.service";
 import { unwrapSettled } from "@/utils/promise";
 
@@ -12,12 +13,20 @@ export const instant = false;
 
 export async function generateMetadata(): Promise<Metadata> {
   const siteKey = env.NEXT_PUBLIC_SITE_KEY;
-  const page = await getPageBySlug("kontak", siteKey).catch(() => null);
+  const config = resolveSiteConfig(siteKey);
+  const [page, settings] = await Promise.all([
+    getPageBySlug("kontak", siteKey).catch(() => null),
+    getSiteSettings(siteKey),
+  ]);
 
-  return {
+  return buildPageMetadata({
     title: page?.meta_title ?? page?.title ?? "Kontak",
-    description: page?.meta_desc ?? undefined,
-  };
+    description: page?.meta_desc,
+    path: "/kontak",
+    siteUrl: resolveSiteUrl(settings),
+    config,
+    settings,
+  });
 }
 
 export default async function KontakPage(): Promise<React.JSX.Element> {

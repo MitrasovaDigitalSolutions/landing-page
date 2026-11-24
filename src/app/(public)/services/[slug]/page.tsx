@@ -1,8 +1,10 @@
+import type { Metadata } from "next";
 import { ArrowLeft, CheckCircle2, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/layout/container";
 import { DynamicIcon } from "@/components/shared/dynamic-icon";
+import { JsonLd } from "@/components/shared/json-ld";
 import { SmartImage } from "@/components/shared/smart-image";
 import { Button } from "@/components/ui/button";
 import { env } from "@/config/env";
@@ -13,6 +15,11 @@ import {
   getServiceBySlug,
   getServices,
 } from "@/features/services/services/services.queries";
+import { buildPageMetadata, resolveSiteUrl } from "@/lib/seo";
+import {
+  buildBreadcrumbJsonLd,
+  buildServiceJsonLd,
+} from "@/lib/seo-jsonld";
 import { getSiteSettings } from "@/services/api/settings.service";
 import { resolveMediaUrl } from "@/utils/media";
 
@@ -20,6 +27,33 @@ export const instant = false;
 
 interface ServiceDetailPageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: ServiceDetailPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const siteKey = env.NEXT_PUBLIC_SITE_KEY;
+  const config = resolveSiteConfig(siteKey);
+  const [service, settings] = await Promise.all([
+    getServiceBySlug(slug, siteKey),
+    getSiteSettings(siteKey),
+  ]);
+
+  const title = service?.name ?? "Detail Produk & Layanan";
+  const imagePathOrUrl = service
+    ? resolveMediaUrl(service.thumbnail_url, service.thumbnail_path)
+    : null;
+
+  return buildPageMetadata({
+    title,
+    description: service?.short_desc,
+    path: `/services/${slug}`,
+    siteUrl: resolveSiteUrl(settings),
+    config,
+    settings,
+    imagePathOrUrl,
+  });
 }
 
 function getDistinctBodyParagraphs(body: string, features: string[]): string[] {
@@ -30,44 +64,82 @@ function getDistinctBodyParagraphs(body: string, features: string[]): string[] {
     .filter((line) => Boolean(line) && !featureSet.has(line.toLowerCase()));
 }
 
-export default async function ServiceDetailPage({
-  params,
-}: ServiceDetailPageProps): Promise<React.JSX.Element> {
-  const { slug } = await params;
-  const siteKey = env.NEXT_PUBLIC_SITE_KEY;
+function buildServiceStructuredData(
+  service: NonNullable<Awaited<ReturnType<typeof getServiceBySlug>>>,
+  siteUrl: string,
+  providerName: string
+): Record<string, unknown>[] {
+  return [
+    buildServiceJsonLd({ service, siteUrl, providerName }),
+    buildBreadcrumbJsonLd(
+      [
+        { name: "Beranda", path: "/" },
+        { name: "Produk & Layanan", path: "/produk" },
+        { name: service.name, path: `/services/${service.slug}` },
+      ],
+      siteUrl
+    ),
+  ];
+}
+
+async function loadServiceViewData(slug: string, siteKey: string) {
   const [service, allServices, settings] = await Promise.all([
-    getServiceBySlug(slug, siteKey).catch(() => null),
-    getServices(undefined, siteKey).catch(() => []),
+    getServiceBySlug(slug, siteKey),
+    getServices(undefined, siteKey),
     getSiteSettings(siteKey),
   ]);
-
   const effectiveModules = resolveEffectiveModules(
     resolveSiteConfig(siteKey).modules,
     settings.modules?.is_active
   );
-
   if (!effectiveModules.services || !service) {
     notFound();
   }
-
-  const iconName = service.service_type?.icon ?? service.service_type?.slug;
-  const typeLabel = service.service_type?.name ?? "Produk & Layanan";
-  const hasImage = Boolean(
-    resolveMediaUrl(service.thumbnail_url, service.thumbnail_path)
-  );
   const features = service.features ?? [];
   const distinctBody = getDistinctBodyParagraphs(service.body, features);
-  const points = features.length > 0 ? features : distinctBody;
-  const siblingServices = allServices.filter(
-    (s) => s.id !== service.id && s.service_type_id === service.service_type_id
-  );
   const waDigits = settings.contact?.whatsapp?.replaceAll(/\D/g, "");
-  const waUrl = waDigits
-    ? `https://wa.me/${waDigits}?text=${encodeURIComponent(`Halo, saya ingin bertanya tentang ${service.name}.`)}`
-    : null;
+  return {
+    service,
+    iconName: service.service_type?.icon ?? service.service_type?.slug,
+    typeLabel: service.service_type?.name ?? "Produk & Layanan",
+    hasImage: Boolean(resolveMediaUrl(service.thumbnail_url, service.thumbnail_path)),
+    features,
+    distinctBody,
+    points: features.length > 0 ? features : distinctBody,
+    siblingServices: allServices.filter(
+      (s) => s.id !== service.id && s.service_type_id === service.service_type_id
+    ),
+    waUrl: waDigits
+      ? `https://wa.me/${waDigits}?text=${encodeURIComponent(`Halo, saya ingin bertanya tentang ${service.name}.`)}`
+      : null,
+    structuredData: buildServiceStructuredData(
+      service,
+      resolveSiteUrl(settings),
+      settings.general?.site_title ?? resolveSiteConfig(siteKey).name
+    ),
+  };
+}
+
+export default async function ServiceDetailPage({
+  params,
+}: ServiceDetailPageProps): Promise<React.JSX.Element> {
+  const { slug } = await params;
+  const {
+    service,
+    iconName,
+    typeLabel,
+    hasImage,
+    features,
+    distinctBody,
+    points,
+    siblingServices,
+    waUrl,
+    structuredData,
+  } = await loadServiceViewData(slug, env.NEXT_PUBLIC_SITE_KEY);
 
   return (
     <div>
+      <JsonLd data={structuredData} />
       <section className="border-b border-slate-200/80 bg-gradient-to-b from-[#F4F8F5] to-white py-6 md:py-8">
         <Container>
           <Link

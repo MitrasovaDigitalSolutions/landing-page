@@ -6,6 +6,7 @@ import { resolveEffectiveModules, resolveSiteConfig } from "@/config/sites";
 import { PublicBusinessUnitsGrid } from "@/features/business-units/components/public-business-units-grid";
 import { getBusinessUnits } from "@/features/business-units/services/business-units.queries";
 import { getPageBySlug } from "@/features/home/services/home.queries";
+import { buildPageMetadata, resolveSiteUrl } from "@/lib/seo";
 import { getSiteSettings } from "@/services/api/settings.service";
 import { unwrapSettled } from "@/utils/promise";
 
@@ -13,12 +14,20 @@ export const instant = false;
 
 export async function generateMetadata(): Promise<Metadata> {
   const siteKey = env.NEXT_PUBLIC_SITE_KEY;
-  const page = await getPageBySlug("unit-usaha", siteKey).catch(() => null);
+  const config = resolveSiteConfig(siteKey);
+  const [page, settings] = await Promise.all([
+    getPageBySlug("unit-usaha", siteKey).catch(() => null),
+    getSiteSettings(siteKey),
+  ]);
 
-  return {
+  return buildPageMetadata({
     title: page?.meta_title ?? page?.title ?? "Unit Usaha",
-    description: page?.meta_desc ?? undefined,
-  };
+    description: page?.meta_desc,
+    path: "/unit-usaha",
+    siteUrl: resolveSiteUrl(settings),
+    config,
+    settings,
+  });
 }
 
 export default async function UnitUsahaPage(): Promise<React.JSX.Element> {

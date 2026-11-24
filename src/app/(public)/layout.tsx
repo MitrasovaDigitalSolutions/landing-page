@@ -1,6 +1,7 @@
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteNavbar } from "@/components/layout/site-navbar";
 import { WhatsappFab } from "@/components/layout/whatsapp-fab";
+import { JsonLd } from "@/components/shared/json-ld";
 import { env } from "@/config/env";
 import {
   buildFooterNavigationFromPages,
@@ -13,6 +14,11 @@ import {
   getServices,
   getServiceTypes,
 } from "@/features/services/services/services.queries";
+import { resolveSiteUrl } from "@/lib/seo";
+import {
+  buildOrganizationJsonLd,
+  buildWebSiteJsonLd,
+} from "@/lib/seo-jsonld";
 import { getSiteSettings } from "@/services/api/settings.service";
 import { unwrapSettled } from "@/utils/promise";
 import type { ReactNode } from "react";
@@ -64,9 +70,15 @@ export default async function PublicLayout({
 
   const waNumber = settings.contact?.whatsapp ?? settings.contact?.phone;
   const siteName = settings.general?.site_title ?? config.name;
+  const siteUrl = resolveSiteUrl(settings);
+  const structuredData = [
+    buildOrganizationJsonLd({ siteUrl, config, settings }),
+    buildWebSiteJsonLd({ siteUrl, config, settings }),
+  ];
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
+      <JsonLd data={structuredData} />
       <SiteNavbar
         config={config}
         settings={settings}

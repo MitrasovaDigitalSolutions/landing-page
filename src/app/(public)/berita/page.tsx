@@ -11,6 +11,7 @@ import {
 } from "@/features/articles/services/articles.queries";
 import { getInstagramLiveMedia } from "@/features/articles/services/instagram.service";
 import { getPageBySlug } from "@/features/home/services/home.queries";
+import { buildPageMetadata, resolveSiteUrl } from "@/lib/seo";
 import { getSiteSettings } from "@/services/api/settings.service";
 import { unwrapSettled } from "@/utils/promise";
 
@@ -18,12 +19,20 @@ export const instant = false;
 
 export async function generateMetadata(): Promise<Metadata> {
   const siteKey = env.NEXT_PUBLIC_SITE_KEY;
-  const page = await getPageBySlug("berita", siteKey).catch(() => null);
+  const config = resolveSiteConfig(siteKey);
+  const [page, settings] = await Promise.all([
+    getPageBySlug("berita", siteKey).catch(() => null),
+    getSiteSettings(siteKey),
+  ]);
 
-  return {
+  return buildPageMetadata({
     title: page?.meta_title ?? page?.title ?? "Artikel & Berita",
-    description: page?.meta_desc ?? undefined,
-  };
+    description: page?.meta_desc,
+    path: "/berita",
+    siteUrl: resolveSiteUrl(settings),
+    config,
+    settings,
+  });
 }
 
 export default async function BeritaPage(): Promise<React.JSX.Element> {
