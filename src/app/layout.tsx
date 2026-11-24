@@ -4,6 +4,7 @@ import { resolveSiteConfig } from "@/config/sites";
 import {
   buildSiteIcons,
   isIndexingEnabled,
+  normalizeGoogleVerificationToken,
   parseCommaList,
   pickNonEmptyText,
   resolveSiteFaviconUrl,
@@ -48,9 +49,10 @@ export async function generateMetadata(): Promise<Metadata> {
     siteUrl
   );
   const indexable = isIndexingEnabled(settings);
-  const googleToken =
+  const googleToken = normalizeGoogleVerificationToken(
     pickNonEmptyText(settings.seo?.google_verification) ??
-    env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
+      env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+  );
 
   return {
     metadataBase: new URL(siteUrl),

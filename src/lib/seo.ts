@@ -130,6 +130,19 @@ export function isIndexingEnabled(settings?: SiteSettings): boolean {
   return flag !== false && flag !== "false";
 }
 
+export function normalizeGoogleVerificationToken(
+  raw?: string | null
+): string | undefined {
+  const trimmed = raw?.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+  const stripped = trimmed
+    .replace(/^google-site-verification=/i, "")
+    .trim();
+  return stripped || undefined;
+}
+
 export interface BuildPageMetadataOptions {
   title: string;
   description?: string | null;
@@ -172,9 +185,14 @@ export function buildPageMetadata({
     );
 
   const canonicalUrl = toAbsoluteSiteUrl(path, siteUrl) ?? siteUrl;
+  const resolvedTitle: Metadata["title"] = title
+    .toLowerCase()
+    .includes(siteName.toLowerCase())
+    ? { absolute: title }
+    : title;
 
   return {
-    title,
+    title: resolvedTitle,
     description: resolvedDesc,
     alternates: { canonical: path },
     openGraph: {
