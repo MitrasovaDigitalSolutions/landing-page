@@ -76,14 +76,6 @@ export function resolveHeroSlides(section: PageSection): PageSectionSlide[] {
   ];
 }
 
-export function resolveHeroStats(section: PageSection): PageSectionStat[] {
-  const rawStats = section.payload?.stats;
-  if (!Array.isArray(rawStats) || rawStats.length === 0) {
-    return [];
-  }
-  return rawStats.filter((st) => Boolean(st.label && st.value));
-}
-
 export function resolveFeaturedCards(
   section: PageSection
 ): PageSectionFeaturedCard[] {

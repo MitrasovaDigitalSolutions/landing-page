@@ -1,8 +1,6 @@
 import { HeroCarousel } from "@/features/home/components/hero-carousel";
-import { HeroStatsBar } from "@/features/home/components/hero-stats-bar";
 import {
   resolveHeroSlides,
-  resolveHeroStats,
   resolvePrimaryCta,
   resolveSecondaryCta,
 } from "@/features/home/utils/section-normalizer";
@@ -14,7 +12,6 @@ interface HeroSectionProps {
 
 export function HeroSection({ section }: HeroSectionProps): React.JSX.Element {
   const slides = resolveHeroSlides(section);
-  const stats = resolveHeroStats(section);
   const primaryCta = resolvePrimaryCta(section, "Lihat Produk Kami", "#featured");
   const secondaryCta = resolveSecondaryCta(section, "Hubungi Kami", "/kontak");
 
@@ -25,7 +22,6 @@ export function HeroSection({ section }: HeroSectionProps): React.JSX.Element {
         primaryCta={primaryCta}
         secondaryCta={secondaryCta}
       />
-      <HeroStatsBar stats={stats} />
     </section>
   );
 }
