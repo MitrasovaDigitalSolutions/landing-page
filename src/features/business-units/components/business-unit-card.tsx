@@ -13,7 +13,7 @@ import { useState } from "react";
 import { SmartImage } from "@/components/shared/smart-image";
 import { BusinessUnitActions } from "@/features/business-units/components/business-unit-actions";
 import type { BusinessUnit } from "@/types/api.types";
-import { resolveMediaUrl } from "@/utils/media";
+import { resolveGalleryUrls, resolveMediaUrl } from "@/utils/media";
 
 interface BusinessUnitCardProps {
   unit: BusinessUnit;
@@ -21,18 +21,12 @@ interface BusinessUnitCardProps {
 }
 
 function resolveUnitPhotos(unit: BusinessUnit): string[] {
-  const raw = [
-    ...(unit.image_urls ?? []),
-    ...(unit.image_url ? [unit.image_url] : []),
-    ...(unit.images ?? []).map((p) => resolveMediaUrl(null, p)),
-  ];
-  const unique: string[] = [];
-  for (const item of raw) {
-    if (item && !unique.includes(item)) {
-      unique.push(item);
-    }
+  const gallery = resolveGalleryUrls(unit.image_urls, unit.images);
+  const cover = resolveMediaUrl(unit.image_url, unit.image_path);
+  if (cover && !gallery.includes(cover)) {
+    return [cover, ...gallery];
   }
-  return unique;
+  return gallery;
 }
 
 function parseAddressAndPhone(rawAddress: string | null): {
