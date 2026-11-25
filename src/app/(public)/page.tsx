@@ -33,7 +33,7 @@ import { unwrapSettled } from "@/utils/promise";
 
 export const instant = false;
 
-const TOP_SECTION_KEYS = ["hero", "about", "vision_mission"];
+const TOP_SECTION_KEYS = ["hero", "about", "visi-misi", "vision_mission"];
 const BOTTOM_SECTION_KEYS = ["cta"];
 
 export async function generateMetadata(): Promise<Metadata> {

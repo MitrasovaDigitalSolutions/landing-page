@@ -148,6 +148,19 @@ export function buildMediaVariantUrl(
   }
 }
 
+export function resolvePayloadMediaUrl(
+  payloadImagePath?: string | null,
+  payloadImageUrl?: string | null,
+  sectionImageUrl?: string | null,
+  sectionImagePath?: string | null
+): string | null {
+  return (
+    resolveMediaUrl(undefined, payloadImagePath) ??
+    resolveMediaUrl(payloadImageUrl) ??
+    resolveMediaUrl(sectionImageUrl, sectionImagePath)
+  );
+}
+
 export function resolveGalleryUrls(
   galleryUrls?: string[] | null,
   galleryPaths?: string[] | null

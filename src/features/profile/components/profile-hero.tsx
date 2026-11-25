@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import { Container } from "@/components/layout/container";
 import { SmartImage } from "@/components/shared/smart-image";
 import type { PageSection } from "@/types/api.types";
+import { resolvePayloadMediaUrl } from "@/utils/media";
 
 interface ProfileHeroProps {
   section?: PageSection;
@@ -22,8 +23,12 @@ export function ProfileHero({
   const description =
     section?.body ??
     `Mengenal lebih dekat sejarah, nilai dasar, visi, dan misi ${siteTitle}.`;
-  const imageUrl = section?.payload?.image_url ?? section?.image_url;
-  const imagePath = section?.payload?.image_path ?? section?.image_path;
+  const imageSrc = resolvePayloadMediaUrl(
+    section?.payload?.image_path,
+    section?.payload?.image_url,
+    section?.image_url,
+    section?.image_path
+  );
   const imageLabel = section?.payload?.image_label;
   const imageCaption = section?.payload?.image_caption;
 
@@ -67,8 +72,7 @@ export function ProfileHero({
         >
           <div className="relative aspect-16/10 w-full">
             <SmartImage
-              src={imageUrl}
-              fallbackPath={imagePath}
+              src={imageSrc}
               alt={title}
               fill
               priority

@@ -4,6 +4,7 @@ import { env } from "@/config/env";
 import { resolveEffectiveModules, resolveSiteConfig } from "@/config/sites";
 import { DynamicPageRenderer } from "@/features/home/components/dynamic-page-renderer";
 import { getPageBySlug } from "@/features/home/services/home.queries";
+import { getServices } from "@/features/services/services/services.queries";
 import { buildPageMetadata, resolveSiteUrl } from "@/lib/seo";
 import { getSiteSettings } from "@/services/api/settings.service";
 
@@ -59,5 +60,19 @@ export default async function DynamicPublicPage({
     notFound();
   }
 
-  return <DynamicPageRenderer page={page} />;
+  const hasFeatured = Boolean(
+    page.sections?.some((s) => s.is_active !== false && s.key === "featured")
+  );
+  const services = hasFeatured
+    ? await getServices(undefined, siteKey).catch(() => [])
+    : [];
+
+  return (
+    <DynamicPageRenderer
+      page={page}
+      services={services}
+      contact={settings.contact}
+      legal={settings.legal}
+    />
+  );
 }

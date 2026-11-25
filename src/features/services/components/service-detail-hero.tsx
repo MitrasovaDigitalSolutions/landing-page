@@ -26,7 +26,7 @@ export function ServiceDetailHero({
   const highlights = (service.features ?? []).filter(Boolean).slice(0, 3);
 
   return (
-    <section className="border-b border-slate-200/80 bg-gradient-to-b from-[#F4F8F5] to-white py-8 md:py-12">
+    <section className="border-b border-slate-200/80 bg-gradient-to-b from-[#F4F8F5] to-white py-7 md:py-11">
       <Container>
         <Link
           href="/produk"

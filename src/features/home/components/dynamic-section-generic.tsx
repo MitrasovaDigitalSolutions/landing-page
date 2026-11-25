@@ -5,7 +5,7 @@ import { SmartImage } from "@/components/shared/smart-image";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { PageSection } from "@/types/api.types";
-import { resolveMediaUrl } from "@/utils/media";
+import { resolvePayloadMediaUrl } from "@/utils/media";
 
 interface DynamicSectionGenericProps {
   section: PageSection;
@@ -16,9 +16,11 @@ export function DynamicSectionGeneric({
   section,
   index,
 }: DynamicSectionGenericProps): React.JSX.Element | null {
-  const imageUrl = resolveMediaUrl(
-    section.payload?.image_url ?? section.image_url,
-    section.payload?.image_path ?? section.image_path
+  const imageUrl = resolvePayloadMediaUrl(
+    section.payload?.image_path,
+    section.payload?.image_url,
+    section.image_url,
+    section.image_path
   );
   const paragraphs = (section.body ?? "")
     .split(/\n\s*\n/)

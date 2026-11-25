@@ -86,14 +86,14 @@ export function resolveFeaturedCards(
   return cards.filter((c) => Boolean(c.title));
 }
 
+export function isVisionMissionKey(key: string): boolean {
+  return key === "visi-misi" || key === "vision_mission";
+}
+
 export function resolveSectionStats(section: PageSection): PageSectionStat[] {
   const rawStats = section.payload?.stats;
   if (!Array.isArray(rawStats) || rawStats.length === 0) {
-    return [
-      { label: "Tahun Berdiri", value: "2006" },
-      { label: "Kantor Cabang", value: "8+" },
-      { label: "Produk Simpanan", value: "5" },
-    ];
+    return [];
   }
   return rawStats;
 }

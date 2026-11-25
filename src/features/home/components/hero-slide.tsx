@@ -8,6 +8,7 @@ import { SmartImage } from "@/components/shared/smart-image";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { PageSectionCta, PageSectionSlide } from "@/types/api.types";
+import { resolvePayloadMediaUrl } from "@/utils/media";
 
 interface HeroSlideProps {
   slide: PageSectionSlide;
@@ -42,8 +43,7 @@ export function HeroSlide({
       )}
     >
       <SmartImage
-        src={slide.image_url}
-        fallbackPath={slide.image_path}
+        src={resolvePayloadMediaUrl(slide.image_path, slide.image_url)}
         alt={slide.title}
         fill
         sizes="100vw"

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { VisionMissionSection } from "@/components/sections/vision-mission-section";
 import { AboutStatsSection } from "@/features/home/components/about-stats-section";
 import { CtaBannerSection } from "@/features/home/components/cta-banner-section";
 import { FeaturedProductsSection } from "@/features/home/components/featured-products-section";
@@ -25,6 +26,7 @@ const SUPPORTED_SECTION_KEYS = new Set<string>([
   "products",
   "office",
   "about",
+  "visi-misi",
   "vision_mission",
   "cta",
 ]);
@@ -74,7 +76,12 @@ export function SectionRenderer({
               />
             );
           case "about":
+            return <AboutStatsSection key={section.id} section={section} />;
+          case "visi-misi":
           case "vision_mission":
+            if (section.payload?.visi || section.payload?.misi?.length) {
+              return <VisionMissionSection key={section.id} section={section} />;
+            }
             return <AboutStatsSection key={section.id} section={section} />;
           case "cta":
             return <CtaBannerSection key={section.id} section={section} />;
