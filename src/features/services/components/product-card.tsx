@@ -3,7 +3,10 @@ import Link from "next/link";
 import { DynamicIcon } from "@/components/shared/dynamic-icon";
 import { SmartImage } from "@/components/shared/smart-image";
 import { Card } from "@/components/ui/card";
-import { formatServicePrice } from "@/features/services/utils/service-display";
+import {
+  formatServicePrice,
+  hasStartingPriceLabel,
+} from "@/features/services/utils/service-display";
 import type { Service } from "@/types/api.types";
 import { resolveMediaUrl } from "@/utils/media";
 
@@ -18,6 +21,9 @@ export function ProductCard({ service }: ProductCardProps): React.JSX.Element {
     resolveMediaUrl(service.thumbnail_url, service.thumbnail_path)
   );
   const formattedPrice = formatServicePrice(service.price);
+  const showStartFrom = Boolean(
+    formattedPrice && !hasStartingPriceLabel(service.price_note)
+  );
 
   return (
     <Card className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-0 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg">
@@ -69,15 +75,22 @@ export function ProductCard({ service }: ProductCardProps): React.JSX.Element {
         ) : null}
 
         {formattedPrice ? (
-          <div className="mt-auto flex flex-wrap items-baseline gap-1 border-t border-slate-100 pt-3">
-            <span className="text-sm font-extrabold text-primary tabular-nums sm:text-base">
-              {formattedPrice}
-            </span>
-            {service.price_note ? (
-              <span className="text-xs font-medium text-slate-500">
-                {service.price_note}
+          <div className="mt-auto border-t border-slate-100 pt-3">
+            {showStartFrom ? (
+              <span className="block text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+                Mulai dari
               </span>
             ) : null}
+            <div className="mt-0.5 flex flex-wrap items-baseline gap-1">
+              <span className="text-sm font-extrabold text-primary tabular-nums sm:text-base">
+                {formattedPrice}
+              </span>
+              {service.price_note ? (
+                <span className="text-xs font-medium text-slate-500">
+                  {service.price_note}
+                </span>
+              ) : null}
+            </div>
           </div>
         ) : null}
       </div>

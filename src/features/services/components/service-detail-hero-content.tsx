@@ -1,6 +1,7 @@
 import { ArrowDown, MessageCircle, Package } from "lucide-react";
 import { DynamicIcon } from "@/components/shared/dynamic-icon";
 import { Button } from "@/components/ui/button";
+import { hasStartingPriceLabel } from "@/features/services/utils/service-display";
 import type { Service } from "@/types/api.types";
 
 interface ServiceDetailHeroContentProps {
@@ -20,6 +21,9 @@ export function ServiceDetailHeroContent({
   formattedPrice,
   waUrl,
 }: ServiceDetailHeroContentProps): React.JSX.Element {
+  const showStartFrom = Boolean(
+    formattedPrice && !hasStartingPriceLabel(service.price_note)
+  );
   return (
     <div className={showShowcaseHero ? "lg:col-span-7" : "max-w-4xl"}>
       <div className="flex flex-wrap items-center gap-2">
@@ -44,15 +48,22 @@ export function ServiceDetailHeroContent({
       </h1>
 
       {formattedPrice ? (
-        <div className="mt-4 inline-flex flex-wrap items-baseline gap-1.5 rounded-xl border border-primary/20 bg-white px-4 py-2.5 shadow-2xs">
-          <span className="text-xl font-extrabold text-primary tabular-nums sm:text-2xl">
-            {formattedPrice}
-          </span>
-          {service.price_note ? (
-            <span className="text-sm font-medium text-slate-500">
-              {service.price_note}
+        <div className="mt-4 inline-flex flex-col rounded-xl border border-primary/20 bg-white px-4 py-2.5 shadow-2xs">
+          {showStartFrom ? (
+            <span className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+              Mulai dari
             </span>
           ) : null}
+          <div className="flex flex-wrap items-baseline gap-1.5">
+            <span className="text-xl font-extrabold text-primary tabular-nums sm:text-2xl">
+              {formattedPrice}
+            </span>
+            {service.price_note ? (
+              <span className="text-sm font-medium text-slate-500">
+                {service.price_note}
+              </span>
+            ) : null}
+          </div>
         </div>
       ) : null}
 

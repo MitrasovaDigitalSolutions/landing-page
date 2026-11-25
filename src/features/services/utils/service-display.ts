@@ -19,3 +19,7 @@ export function formatServicePrice(price?: number | null): string | null {
   }
   return IDR_FORMATTER.format(price);
 }
+
+export function hasStartingPriceLabel(priceNote?: string | null): boolean {
+  return Boolean(priceNote && /mulai\s+dari|start\s+from/i.test(priceNote));
+}
