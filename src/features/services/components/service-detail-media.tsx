@@ -1,6 +1,11 @@
 "use client";
 
-import { Download as DownloadIcon, Expand, Package } from "lucide-react";
+import {
+  Download as DownloadIcon,
+  Expand,
+  FileImage,
+  Package,
+} from "lucide-react";
 import { useState } from "react";
 import Lightbox from "yet-another-react-lightbox";
 import Captions from "yet-another-react-lightbox/plugins/captions";
@@ -39,20 +44,17 @@ export function ServiceDetailMedia({
 
   if (!imageUrl) {
     return (
-      <div className="relative aspect-4/3 w-full overflow-hidden rounded-2xl border border-slate-200/90 bg-slate-100 shadow-xs lg:col-span-5">
-        <div className="flex size-full flex-col items-center justify-center bg-slate-100 text-slate-400">
+      <div className="overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-sm lg:col-span-6">
+        <div className="flex aspect-4/3 w-full flex-col items-center justify-center gap-2 bg-slate-50 text-slate-400">
           <DynamicIcon
             name={iconName}
             fallback={Package}
             className="size-16 stroke-[1.5]"
           />
-        </div>
-
-        {service.is_featured ? (
-          <span className="absolute top-3 left-3 rounded-full border border-amber-200/90 bg-amber-50/95 px-3 py-1 text-[11px] font-bold tracking-wide text-amber-700 uppercase shadow-2xs backdrop-blur-xs">
-            Unggulan
+          <span className="text-xs font-medium text-slate-400">
+            Rincian visual belum tersedia
           </span>
-        ) : null}
+        </div>
       </div>
     );
   }
@@ -60,53 +62,69 @@ export function ServiceDetailMedia({
   const downloadFilename = buildDownloadFilename(service.slug, imageUrl);
 
   return (
-    <div className="group relative aspect-4/3 w-full overflow-hidden rounded-2xl border border-slate-200/90 bg-slate-100 shadow-xs lg:col-span-5">
-      <button
-        type="button"
-        onClick={() => {
-          setLightboxOpen(true);
-        }}
-        aria-label={`Perbesar gambar ${service.name}`}
-        className="relative block size-full cursor-zoom-in outline-none"
-      >
-        <SmartImage
-          src={service.thumbnail_url}
-          fallbackPath={service.thumbnail_path}
-          alt={service.name}
-          fill
-          sizes="(max-width: 1024px) 100vw, 42vw"
-          className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-        />
-      </button>
-
-      {service.is_featured ? (
-        <span className="pointer-events-none absolute top-3 left-3 rounded-full border border-amber-200/90 bg-amber-50/95 px-3 py-1 text-[11px] font-bold tracking-wide text-amber-700 uppercase shadow-2xs backdrop-blur-xs">
-          Unggulan
+    <div className="overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-lg shadow-slate-900/[0.04] lg:col-span-6">
+      <div className="flex items-center justify-between gap-2 border-b border-slate-100 bg-slate-50/70 px-4 py-2.5">
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+          <FileImage className="size-3.5 text-primary" />
+          <span>Rincian Visual Produk</span>
         </span>
-      ) : null}
+        <span className="text-[11px] font-medium text-slate-400">
+          Klik gambar untuk zoom
+        </span>
+      </div>
 
-      <div className="absolute right-3 bottom-3 flex items-center gap-1.5">
+      <div className="bg-slate-50/50 p-3 sm:p-4">
         <button
           type="button"
           onClick={() => {
             setLightboxOpen(true);
           }}
-          aria-label={`Zoom gambar ${service.name}`}
-          className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200/90 bg-white/95 px-2.5 text-[11px] font-semibold text-slate-700 shadow-sm backdrop-blur-xs transition-colors hover:border-primary/40 hover:text-primary"
+          aria-label={`Perbesar gambar ${service.name}`}
+          className="group relative block aspect-4/3 w-full cursor-zoom-in overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200/70 outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
-          <Expand className="size-3.5" />
-          <span>Perbesar</span>
+          <SmartImage
+            src={service.thumbnail_url}
+            fallbackPath={service.thumbnail_path}
+            alt={service.name}
+            fill
+            sizes="(max-width: 1024px) 100vw, 48vw"
+            className="object-contain p-2 transition-transform duration-300 group-hover:scale-[1.02]"
+          />
+          <span className="pointer-events-none absolute right-3 bottom-3 inline-flex items-center gap-1.5 rounded-full bg-slate-900/75 px-3 py-1 text-[11px] font-semibold text-white opacity-0 shadow-sm backdrop-blur-xs transition-opacity group-hover:opacity-100">
+            <Expand className="size-3" />
+            <span>Zoom</span>
+          </span>
         </button>
+      </div>
 
-        <a
-          href={imageUrl}
-          download={downloadFilename}
-          aria-label={`Unduh gambar ${service.name}`}
-          className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-slate-200/90 bg-white/95 px-2.5 text-[11px] font-semibold text-slate-700 shadow-sm backdrop-blur-xs transition-colors hover:border-primary/40 hover:text-primary"
-        >
-          <DownloadIcon className="size-3.5" />
-          <span>Unduh</span>
-        </a>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 bg-white px-4 py-3">
+        <span className="min-w-0 truncate text-xs font-semibold text-slate-700">
+          {service.name}
+        </span>
+
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setLightboxOpen(true);
+            }}
+            aria-label={`Perbesar gambar ${service.name}`}
+            className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition-colors hover:border-primary/40 hover:text-primary"
+          >
+            <Expand className="size-3.5" />
+            <span>Perbesar</span>
+          </button>
+
+          <a
+            href={imageUrl}
+            download={downloadFilename}
+            aria-label={`Unduh gambar ${service.name}`}
+            className="inline-flex h-8 items-center gap-1.5 rounded-xl border border-primary/25 bg-primary/5 px-3 text-xs font-bold text-primary transition-colors hover:bg-primary/10"
+          >
+            <DownloadIcon className="size-3.5" />
+            <span>Unduh</span>
+          </a>
+        </div>
       </div>
 
       <Lightbox

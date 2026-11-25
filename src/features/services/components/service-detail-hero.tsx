@@ -23,8 +23,10 @@ export function ServiceDetailHero({
   formattedPrice,
   waUrl,
 }: ServiceDetailHeroProps): React.JSX.Element {
+  const highlights = (service.features ?? []).filter(Boolean).slice(0, 3);
+
   return (
-    <section className="border-b border-slate-200/80 bg-gradient-to-b from-[#F4F8F5] to-white py-7 md:py-10">
+    <section className="border-b border-slate-200/80 bg-gradient-to-b from-[#F4F8F5] to-white py-8 md:py-12">
       <Container>
         <Link
           href="/produk"
@@ -38,21 +40,22 @@ export function ServiceDetailHero({
           className={cn(
             "mt-5",
             showShowcaseHero &&
-              "grid grid-cols-1 items-center gap-7 lg:grid-cols-12 lg:gap-10"
+              "grid grid-cols-1 items-start gap-8 lg:grid-cols-12 lg:gap-12"
           )}
         >
-          {showShowcaseHero ? (
-            <ServiceDetailMedia service={service} iconName={iconName} />
-          ) : null}
-
           <ServiceDetailHeroContent
             service={service}
             typeLabel={typeLabel}
             iconName={iconName}
             showShowcaseHero={showShowcaseHero}
             formattedPrice={formattedPrice}
+            highlights={highlights}
             waUrl={waUrl}
           />
+
+          {showShowcaseHero ? (
+            <ServiceDetailMedia service={service} iconName={iconName} />
+          ) : null}
         </div>
       </Container>
     </section>
