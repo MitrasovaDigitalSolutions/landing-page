@@ -157,7 +157,6 @@ export default async function ServiceDetailPage({
         service={service}
         typeLabel={typeLabel}
         iconName={iconName}
-        hasImage={hasImage}
         showShowcaseHero={servicesLayout !== "accordion" || hasImage}
         formattedPrice={formattedPrice}
         waUrl={waUrl}
