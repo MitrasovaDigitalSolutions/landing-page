@@ -14,6 +14,7 @@ import { useState } from "react";
 import { SmartImage } from "@/components/shared/smart-image";
 import { Button } from "@/components/ui/button";
 import type { Branch } from "@/types/api.types";
+import { resolveDirectMapsUrl } from "@/utils/maps";
 import { resolveMediaUrl } from "@/utils/media";
 import { resolveBranchWhatsappDigits } from "@/utils/whatsapp";
 
@@ -30,11 +31,6 @@ function resolveBranchPhotos(branch: Branch): string[] {
   return (branch.images ?? [])
     .map((path) => resolveMediaUrl(null, path))
     .filter((url): url is string => Boolean(url));
-}
-
-function buildMapsUrl(address: string, name: string): string {
-  const query = `${name} ${address}`.trim();
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 }
 
 function buildBranchWhatsappUrl(branch: Branch): string | null {
@@ -55,6 +51,10 @@ export function BranchCard({
   const activePhoto = photos[photoIdx];
   const hasMultiplePhotos = photos.length > 1;
   const waUrl = buildBranchWhatsappUrl(branch);
+  const mapsUrl = resolveDirectMapsUrl(
+    branch.maps_embed,
+    `${branch.name} ${branch.address}`
+  );
 
   const handlePrevPhoto = (): void => {
     setPhotoIdx((prev) => (prev === 0 ? photos.length - 1 : prev - 1));
@@ -166,22 +166,20 @@ export function BranchCard({
             </Button>
           ) : null}
 
-          <Button
-            variant="outline"
-            size="sm"
-            nativeButton={false}
-            className="h-9 flex-1 justify-center gap-1.5 rounded-xl border-slate-200 text-xs font-bold text-slate-700 hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
-            render={
-              <a
-                href={buildMapsUrl(branch.address, branch.name)}
-                target="_blank"
-                rel="noopener noreferrer"
-              />
-            }
-          >
-            <span>Petunjuk Arah</span>
-            <ExternalLink className="size-3.5" />
-          </Button>
+          {mapsUrl ? (
+            <Button
+              variant="outline"
+              size="sm"
+              nativeButton={false}
+              className="h-9 flex-1 justify-center gap-1.5 rounded-xl border-slate-200 text-xs font-bold text-slate-700 hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
+              render={
+                <a href={mapsUrl} target="_blank" rel="noopener noreferrer" />
+              }
+            >
+              <span>Petunjuk Arah</span>
+              <ExternalLink className="size-3.5" />
+            </Button>
+          ) : null}
         </div>
       </div>
     </motion.article>

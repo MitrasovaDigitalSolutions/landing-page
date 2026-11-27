@@ -17,15 +17,15 @@ import type {
   SiteContactSettings,
   SiteLegalSettings,
 } from "@/types/site-settings.types";
+import {
+  resolveDirectMapsUrl,
+  resolveMapsIframeSrc,
+} from "@/utils/maps";
 
 interface HeadOfficeSectionProps {
   section: PageSection;
   contact?: SiteContactSettings;
   legal?: SiteLegalSettings;
-}
-
-function buildMapsSearchUrl(address: string): string {
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 }
 
 function formatWhatsappHref(wa: string): string {
@@ -41,10 +41,12 @@ export function HeadOfficeSection({
   const badge = section.payload?.badge ?? "Lokasi";
   const title = section.title ?? "Alamat Kantor Pusat";
   const address = section.body ?? contact?.address ?? "";
-  const mapsEmbed =
+  const rawMapsEmbed =
     section.payload?.maps_embed ??
     contact?.maps_embed ??
     contact?.maps_embed_url;
+  const mapsEmbed = resolveMapsIframeSrc(rawMapsEmbed) ?? undefined;
+  const mapsHref = resolveDirectMapsUrl(rawMapsEmbed, address);
 
   return (
     <section
@@ -123,17 +125,13 @@ export function HeadOfficeSection({
           </div>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            {address ? (
+            {mapsHref ? (
               <Button
                 size="lg"
                 nativeButton={false}
                 className="h-11 gap-2 rounded-xl px-5 text-xs font-bold shadow-xs"
                 render={
-                  <a
-                    href={buildMapsSearchUrl(address)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  />
+                  <a href={mapsHref} target="_blank" rel="noopener noreferrer" />
                 }
               >
                 <span>Buka Google Maps</span>

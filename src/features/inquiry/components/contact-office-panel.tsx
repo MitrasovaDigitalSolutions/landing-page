@@ -14,15 +14,15 @@ import type {
   SiteContactSettings,
   SiteLegalSettings,
 } from "@/types/site-settings.types";
+import {
+  resolveDirectMapsUrl,
+  resolveMapsIframeSrc,
+} from "@/utils/maps";
 
 interface ContactOfficePanelProps {
   officeSection?: PageSection;
   contact?: SiteContactSettings;
   legal?: SiteLegalSettings;
-}
-
-function buildMapsUrl(address: string): string {
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 }
 
 export function ContactOfficePanel({
@@ -32,10 +32,12 @@ export function ContactOfficePanel({
 }: ContactOfficePanelProps): React.JSX.Element {
   const title = officeSection?.title ?? "Kantor Pusat & Saluran Resmi";
   const address = officeSection?.body ?? contact?.address ?? "";
-  const mapsEmbed =
+  const rawMapsEmbed =
     officeSection?.payload?.maps_embed ??
     contact?.maps_embed ??
     contact?.maps_embed_url;
+  const mapsEmbed = resolveMapsIframeSrc(rawMapsEmbed);
+  const mapsHref = resolveDirectMapsUrl(rawMapsEmbed, address);
   const waDigits = contact?.whatsapp?.replaceAll(/\D/g, "");
 
   return (
@@ -113,18 +115,14 @@ export function ContactOfficePanel({
       ) : null}
 
       <div className="grid grid-cols-2 gap-2.5 pt-1">
-        {address ? (
+        {mapsHref ? (
           <Button
             variant="outline"
             size="sm"
             nativeButton={false}
             className="h-9 gap-1.5 rounded-xl border-slate-200 bg-white text-xs font-bold text-slate-700 hover:border-primary/40 hover:text-primary"
             render={
-              <a
-                href={buildMapsUrl(address)}
-                target="_blank"
-                rel="noopener noreferrer"
-              />
+              <a href={mapsHref} target="_blank" rel="noopener noreferrer" />
             }
           >
             <span>Buka Maps</span>

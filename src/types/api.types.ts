@@ -179,6 +179,7 @@ export interface Branch {
   address: string;
   phone: string | null;
   whatsapp?: string | null;
+  maps_embed?: string | null;
   is_primary: boolean;
   images: string[] | null;
   image_urls: string[] | null;
