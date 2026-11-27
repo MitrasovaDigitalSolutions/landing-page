@@ -178,6 +178,7 @@ export interface Branch {
   name: string;
   address: string;
   phone: string | null;
+  whatsapp?: string | null;
   is_primary: boolean;
   images: string[] | null;
   image_urls: string[] | null;

@@ -10,6 +10,7 @@ import {
 } from "@/features/articles/services/articles.queries";
 import { FaqSection } from "@/features/faq/components/faq-accordion";
 import { getFaqs } from "@/features/faq/services/faq.queries";
+import { getBranches } from "@/features/branches/services/branches.queries";
 import { SectionRenderer } from "@/features/home/components/section-renderer";
 import { getHomePageDetail } from "@/features/home/services/home.queries";
 import { resolveHeroSlides } from "@/features/home/utils/section-normalizer";
@@ -91,6 +92,7 @@ async function loadHomePageData(siteKey: string) {
     faqsResult,
     articlesResult,
     articleCategoriesResult,
+    branchesResult,
   ] = await Promise.all([
     effectiveModules.services
       ? Promise.allSettled([getServices(undefined, siteKey)]).then((r) => unwrapSettled(r[0], []))
@@ -115,6 +117,9 @@ async function loadHomePageData(siteKey: string) {
     effectiveModules.articles
       ? Promise.allSettled([getArticleCategories(siteKey)]).then((r) => unwrapSettled(r[0], []))
       : Promise.resolve([]),
+    effectiveModules.branches && effectiveModules.contact
+      ? Promise.allSettled([getBranches(siteKey)]).then((r) => unwrapSettled(r[0], []))
+      : Promise.resolve([]),
   ]);
 
   const sections = (pageResult?.sections ?? []).filter((s) => s.is_active !== false);
@@ -138,7 +143,10 @@ async function loadHomePageData(siteKey: string) {
     faqsResult,
     articlesResult,
     articleCategoriesResult,
+    branchesResult,
     settings,
+    siteName: settings.general?.site_title ?? config.name,
+    siteUrl: resolveSiteUrl(settings),
     officeSection: sections.find((s) => s.key === "office"),
   };
 }
@@ -157,7 +165,10 @@ export default async function HomePage(): Promise<React.JSX.Element> {
     faqsResult,
     articlesResult,
     articleCategoriesResult,
+    branchesResult,
     settings,
+    siteName,
+    siteUrl,
     officeSection,
   } = await loadHomePageData(env.NEXT_PUBLIC_SITE_KEY);
 
@@ -200,6 +211,9 @@ export default async function HomePage(): Promise<React.JSX.Element> {
           officeSection={officeSection}
           contact={settings.contact}
           legal={settings.legal}
+          branches={branchesResult}
+          siteName={siteName}
+          siteUrl={siteUrl}
         />
       ) : null}
     </div>

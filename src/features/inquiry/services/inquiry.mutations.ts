@@ -4,6 +4,14 @@ import { ApiError } from "@/lib/api-error";
 import { httpClient } from "@/lib/http-client";
 import type { InquiryResponse } from "@/types/api.types";
 
+export interface SubmitInquiryPayload {
+  name: string;
+  phone: string;
+  email?: string;
+  subject?: string;
+  message: string;
+}
+
 export interface InquiryActionResult {
   success: boolean;
   message: string;
@@ -11,12 +19,12 @@ export interface InquiryActionResult {
 }
 
 export async function submitInquiryAction(
-  formData: FormData
+  payload: SubmitInquiryPayload
 ): Promise<InquiryActionResult> {
   try {
     const response = await httpClient.post<InquiryResponse>(
       "/inquiries",
-      formData
+      payload
     );
 
     return {

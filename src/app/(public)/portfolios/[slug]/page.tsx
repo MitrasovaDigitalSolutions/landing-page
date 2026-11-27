@@ -4,6 +4,7 @@ import { JsonLd } from "@/components/shared/json-ld";
 import { SmartImage } from "@/components/shared/smart-image";
 import { env } from "@/config/env";
 import { resolveEffectiveModules, resolveSiteConfig } from "@/config/sites";
+import { getBranches } from "@/features/branches/services/branches.queries";
 import { InquirySection } from "@/features/inquiry/components/inquiry-section";
 import { getPortfolioBySlug } from "@/features/portfolio/services/portfolio.queries";
 import { buildPageMetadata, resolveSiteUrl } from "@/lib/seo";
@@ -49,11 +50,7 @@ export async function generateMetadata({
   });
 }
 
-export default async function PortfolioDetailPage({
-  params,
-}: PortfolioDetailPageProps): Promise<React.JSX.Element> {
-  const { slug } = await params;
-  const siteKey = env.NEXT_PUBLIC_SITE_KEY;
+async function loadPortfolioViewData(slug: string, siteKey: string) {
   const [portfolio, settings] = await Promise.all([
     getPortfolioBySlug(slug, siteKey).catch(() => null),
     getSiteSettings(siteKey),
@@ -68,21 +65,53 @@ export default async function PortfolioDetailPage({
     notFound();
   }
 
-  const galleryUrls = resolveGalleryUrls(
-    portfolio.gallery_image_urls,
-    portfolio.gallery_images
-  );
-  const formattedDate =
-    formatDateId(portfolio.completion_date) || portfolio.completion_date;
   const siteUrl = resolveSiteUrl(settings);
-  const breadcrumbJsonLd = buildBreadcrumbJsonLd(
-    [
-      { name: "Beranda", path: "/" },
-      { name: "Portofolio", path: "/#portfolios" },
-      { name: portfolio.title, path: `/portfolios/${portfolio.slug}` },
-    ],
-    siteUrl
-  );
+  const siteName =
+    settings.general?.site_title ?? resolveSiteConfig(siteKey).name;
+  const branches =
+    effectiveModules.branches && effectiveModules.contact
+      ? await getBranches(siteKey).catch(() => [])
+      : [];
+
+  return {
+    portfolio,
+    settings,
+    showContact: effectiveModules.contact,
+    galleryUrls: resolveGalleryUrls(
+      portfolio.gallery_image_urls,
+      portfolio.gallery_images
+    ),
+    formattedDate:
+      formatDateId(portfolio.completion_date) || portfolio.completion_date,
+    siteName,
+    siteUrl,
+    branches,
+    breadcrumbJsonLd: buildBreadcrumbJsonLd(
+      [
+        { name: "Beranda", path: "/" },
+        { name: "Portofolio", path: "/#portfolios" },
+        { name: portfolio.title, path: `/portfolios/${portfolio.slug}` },
+      ],
+      siteUrl
+    ),
+  };
+}
+
+export default async function PortfolioDetailPage({
+  params,
+}: PortfolioDetailPageProps): Promise<React.JSX.Element> {
+  const { slug } = await params;
+  const {
+    portfolio,
+    settings,
+    showContact,
+    galleryUrls,
+    formattedDate,
+    siteName,
+    siteUrl,
+    branches,
+    breadcrumbJsonLd,
+  } = await loadPortfolioViewData(slug, env.NEXT_PUBLIC_SITE_KEY);
 
   return (
     <div>
@@ -185,10 +214,13 @@ export default async function PortfolioDetailPage({
         </Container>
       </section>
 
-      {effectiveModules.contact ? (
+      {showContact ? (
         <InquirySection
           contact={settings.contact}
           defaultSubject={`Konsultasi Proyek: ${portfolio.title}`}
+          branches={branches}
+          siteName={siteName}
+          siteUrl={siteUrl}
         />
       ) : null}
     </div>

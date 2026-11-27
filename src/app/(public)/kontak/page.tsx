@@ -4,6 +4,7 @@ import { PageHero } from "@/components/layout/page-hero";
 import { env } from "@/config/env";
 import { resolveEffectiveModules, resolveSiteConfig } from "@/config/sites";
 import { getPageBySlug } from "@/features/home/services/home.queries";
+import { getBranches } from "@/features/branches/services/branches.queries";
 import { ContactHubSection } from "@/features/inquiry/components/contact-hub-section";
 import { buildPageMetadata, resolveSiteUrl } from "@/lib/seo";
 import { getSiteSettings } from "@/services/api/settings.service";
@@ -47,6 +48,13 @@ export default async function KontakPage(): Promise<React.JSX.Element> {
     notFound();
   }
 
+  const branches = effectiveModules.branches
+    ? await getBranches(siteKey).catch(() => [])
+    : [];
+  const siteName =
+    settings.general?.site_title ?? resolveSiteConfig(siteKey).name;
+  const siteUrl = resolveSiteUrl(settings);
+
   const sections = (page?.sections ?? []).filter((s) => s.is_active !== false);
   const heroSection = sections.find((s) => s.key === "hero");
 
@@ -61,6 +69,9 @@ export default async function KontakPage(): Promise<React.JSX.Element> {
         contact={settings.contact}
         legal={settings.legal}
         showHeading={false}
+        branches={branches}
+        siteName={siteName}
+        siteUrl={siteUrl}
       />
     </div>
   );

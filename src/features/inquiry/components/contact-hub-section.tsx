@@ -2,7 +2,7 @@ import { Container } from "@/components/layout/container";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { ContactOfficePanel } from "@/features/inquiry/components/contact-office-panel";
 import { InquiryForm } from "@/features/inquiry/components/inquiry-form";
-import type { PageSection } from "@/types/api.types";
+import type { Branch, PageSection } from "@/types/api.types";
 import type {
   SiteContactSettings,
   SiteLegalSettings,
@@ -14,6 +14,9 @@ interface ContactHubSectionProps {
   officeSection?: PageSection;
   showHeading?: boolean;
   defaultSubject?: string;
+  branches?: Branch[];
+  siteName?: string;
+  siteUrl?: string;
 }
 
 export function ContactHubSection({
@@ -22,6 +25,9 @@ export function ContactHubSection({
   officeSection,
   showHeading = true,
   defaultSubject,
+  branches = [],
+  siteName,
+  siteUrl,
 }: ContactHubSectionProps): React.JSX.Element {
   return (
     <section
@@ -47,7 +53,14 @@ export function ContactHubSection({
           </div>
 
           <div className="lg:col-span-7">
-            <InquiryForm defaultSubject={defaultSubject} compact />
+            <InquiryForm
+              defaultSubject={defaultSubject}
+              compact
+              branches={branches}
+              fallbackWhatsapp={contact?.whatsapp}
+              siteName={siteName}
+              siteUrl={siteUrl}
+            />
           </div>
         </div>
       </Container>

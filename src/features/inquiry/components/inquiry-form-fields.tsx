@@ -1,24 +1,48 @@
 "use client";
 
-import { FormFileUpload } from "@/components/forms/form-file-upload";
+import { Loader2, MessageCircle, Send } from "lucide-react";
 import { FormInput } from "@/components/forms/form-input";
 import { FormTextarea } from "@/components/forms/form-textarea";
+import { FormWhatsappInput } from "@/components/forms/form-whatsapp-input";
 import { Button } from "@/components/ui/button";
+import { InquiryBranchSelect } from "@/features/inquiry/components/inquiry-branch-select";
 import type { InquiryFormData } from "@/features/inquiry/schemas/inquiry.schema";
 import { cn } from "@/lib/utils";
-import { Loader2, Send } from "lucide-react";
+import type { Branch } from "@/types/api.types";
 
 interface InquiryFormFieldsProps {
   compact: boolean;
   isSubmitting: boolean;
   alignSubmitEnd?: boolean;
+  branches?: Branch[];
+  fallbackWhatsapp?: string | null;
+  hasWhatsappTarget?: boolean;
+  lastWhatsappUrl?: string | null;
 }
 
 export function InquiryFormFields({
   compact,
   isSubmitting,
   alignSubmitEnd = false,
+  branches = [],
+  fallbackWhatsapp,
+  hasWhatsappTarget = false,
+  lastWhatsappUrl = null,
 }: InquiryFormFieldsProps): React.JSX.Element {
+  let submitLabel = hasWhatsappTarget
+    ? "Kirim & Lanjut ke WhatsApp"
+    : "Kirim Permohonan Konsultasi";
+  let submitIcon = hasWhatsappTarget ? (
+    <MessageCircle className="size-4" />
+  ) : (
+    <Send className="size-4" />
+  );
+
+  if (isSubmitting) {
+    submitLabel = "Mengirim Permohonan...";
+    submitIcon = <Loader2 className="size-4 animate-spin" />;
+  }
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -28,11 +52,11 @@ export function InquiryFormFields({
           placeholder="Contoh: Ahmad Dani"
           required
         />
-        <FormInput<InquiryFormData>
+        <FormWhatsappInput<InquiryFormData>
           name="phone"
           id="inquiry-phone"
-          label="Nomor Telepon / WhatsApp"
-          placeholder="081234567890"
+          label="Nomor WhatsApp / Telepon"
+          placeholder="81234567890"
           required
         />
       </div>
@@ -51,6 +75,13 @@ export function InquiryFormFields({
         />
       </div>
 
+      {branches.length > 0 ? (
+        <InquiryBranchSelect
+          branches={branches}
+          fallbackWhatsapp={fallbackWhatsapp}
+        />
+      ) : null}
+
       <FormTextarea<InquiryFormData>
         name="message"
         id="inquiry-message"
@@ -60,10 +91,21 @@ export function InquiryFormFields({
         required
       />
 
-      <FormFileUpload<InquiryFormData>
-        name="attachment"
-        label="Lampiran Dokumen Pendukung (Opsional, Maks 10MB)"
-      />
+      {lastWhatsappUrl ? (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-200 bg-emerald-50/80 px-3.5 py-2.5 text-xs text-emerald-800">
+          <p className="font-medium">
+            Pesan tersimpan. Jika WhatsApp belum terbuka otomatis, lanjutkan lewat tombol di samping.
+          </p>
+          <a
+            href={lastWhatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex shrink-0 items-center rounded-lg bg-emerald-600 px-3 py-1.5 font-bold text-white transition-colors hover:bg-emerald-700"
+          >
+            Buka WhatsApp ↗
+          </a>
+        </div>
+      ) : null}
 
       <div className={cn(alignSubmitEnd && "flex justify-end pt-1")}>
         <Button
@@ -75,16 +117,8 @@ export function InquiryFormFields({
             alignSubmitEnd ? "w-full sm:w-auto sm:px-6" : "mt-2 w-full"
           )}
         >
-          {isSubmitting ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Send className="size-4" />
-          )}
-          <span>
-            {isSubmitting
-              ? "Mengirim Permohonan..."
-              : "Kirim Permohonan Konsultasi"}
-          </span>
+          {submitIcon}
+          <span>{submitLabel}</span>
         </Button>
       </div>
     </div>

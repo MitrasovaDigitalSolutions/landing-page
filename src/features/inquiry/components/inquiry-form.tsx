@@ -1,10 +1,11 @@
 "use client";
 
+import { FormProvider } from "react-hook-form";
 import { Card } from "@/components/ui/card";
 import { InquiryFormFields } from "@/features/inquiry/components/inquiry-form-fields";
 import { InquiryFormInfoPanel } from "@/features/inquiry/components/inquiry-form-info-panel";
 import { useInquiryForm } from "@/features/inquiry/hooks/use-inquiry-form";
-import { FormProvider } from "react-hook-form";
+import type { Branch } from "@/types/api.types";
 
 export interface InquiryFormProps {
   defaultSubject?: string;
@@ -14,6 +15,10 @@ export interface InquiryFormProps {
   description?: string;
   whatsappUrl?: string | null;
   whatsappLabel?: string;
+  branches?: Branch[];
+  fallbackWhatsapp?: string | null;
+  siteName?: string;
+  siteUrl?: string;
 }
 
 export function InquiryForm({
@@ -24,8 +29,24 @@ export function InquiryForm({
   description = "Lengkapi data di bawah ini. Tim konsultan kami akan segera menghubungi Anda.",
   whatsappUrl,
   whatsappLabel = "Chat via WhatsApp",
+  branches = [],
+  fallbackWhatsapp,
+  siteName,
+  siteUrl,
 }: InquiryFormProps): React.JSX.Element {
-  const { methods, isSubmitting, onSubmit } = useInquiryForm(defaultSubject);
+  const {
+    methods,
+    isSubmitting,
+    onSubmit,
+    lastWhatsappUrl,
+    hasWhatsappTarget,
+  } = useInquiryForm({
+    defaultSubject,
+    branches,
+    fallbackWhatsapp,
+    siteName,
+    siteUrl,
+  });
 
   if (orientation === "horizontal") {
     return (
@@ -44,6 +65,10 @@ export function InquiryForm({
                   compact={compact}
                   isSubmitting={isSubmitting}
                   alignSubmitEnd
+                  branches={branches}
+                  fallbackWhatsapp={fallbackWhatsapp}
+                  hasWhatsappTarget={hasWhatsappTarget}
+                  lastWhatsappUrl={lastWhatsappUrl}
                 />
               </form>
             </FormProvider>
@@ -74,7 +99,14 @@ export function InquiryForm({
 
       <FormProvider {...methods}>
         <form onSubmit={onSubmit}>
-          <InquiryFormFields compact={compact} isSubmitting={isSubmitting} />
+          <InquiryFormFields
+            compact={compact}
+            isSubmitting={isSubmitting}
+            branches={branches}
+            fallbackWhatsapp={fallbackWhatsapp}
+            hasWhatsappTarget={hasWhatsappTarget}
+            lastWhatsappUrl={lastWhatsappUrl}
+          />
         </form>
       </FormProvider>
     </Card>

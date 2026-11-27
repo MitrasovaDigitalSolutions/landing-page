@@ -4,6 +4,7 @@ import { Container } from "@/components/layout/container";
 import { JsonLd } from "@/components/shared/json-ld";
 import { env } from "@/config/env";
 import { resolveEffectiveModules, resolveSiteConfig } from "@/config/sites";
+import { getBranches } from "@/features/branches/services/branches.queries";
 import { InquiryForm } from "@/features/inquiry/components/inquiry-form";
 import { ServiceDetailBody } from "@/features/services/components/service-detail-body";
 import { ServiceDetailHero } from "@/features/services/components/service-detail-hero";
@@ -104,6 +105,14 @@ async function loadServiceViewData(slug: string, siteKey: string) {
   const features = service.features ?? [];
   const distinctBody = getDistinctBodyParagraphs(service.body, features);
   const waDigits = settings.contact?.whatsapp?.replaceAll(/\D/g, "");
+  const branches =
+    effectiveModules.branches && effectiveModules.contact
+      ? await getBranches(siteKey).catch(() => [])
+      : [];
+  const siteUrl = resolveSiteUrl(settings);
+  const siteName =
+    settings.general?.site_title ?? resolveSiteConfig(siteKey).name;
+
   return {
     service,
     servicesLayout: resolveServicesLayout(settings.services?.layout),
@@ -114,6 +123,10 @@ async function loadServiceViewData(slug: string, siteKey: string) {
       resolveGalleryUrls(service.image_urls, service.images).length > 0 ||
       Boolean(resolveMediaUrl(service.thumbnail_url, service.thumbnail_path)),
     showContactSection: effectiveModules.contact,
+    branches,
+    fallbackWhatsapp: settings.contact?.whatsapp ?? null,
+    siteName,
+    siteUrl,
     features,
     distinctBody,
     points: features.length > 0 ? features : distinctBody,
@@ -125,8 +138,8 @@ async function loadServiceViewData(slug: string, siteKey: string) {
       : null,
     structuredData: buildServiceStructuredData(
       service,
-      resolveSiteUrl(settings),
-      settings.general?.site_title ?? resolveSiteConfig(siteKey).name
+      siteUrl,
+      siteName
     ),
   };
 }
@@ -143,6 +156,10 @@ export default async function ServiceDetailPage({
     typeLabel,
     hasImage,
     showContactSection,
+    branches,
+    fallbackWhatsapp,
+    siteName,
+    siteUrl,
     features,
     distinctBody,
     points,
@@ -188,6 +205,10 @@ export default async function ServiceDetailPage({
               description="Isi formulir singkat di bawah ini atau hubungi tim kami langsung melalui WhatsApp untuk mendapatkan informasi detail."
               whatsappUrl={waUrl}
               whatsappLabel={`Tanya ${service.name} via WhatsApp`}
+              branches={branches}
+              fallbackWhatsapp={fallbackWhatsapp}
+              siteName={siteName}
+              siteUrl={siteUrl}
             />
           </Container>
         </section>

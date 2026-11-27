@@ -6,6 +6,7 @@ import {
   ChevronRight,
   ExternalLink,
   MapPin,
+  MessageCircle,
   Phone,
 } from "lucide-react";
 import { motion } from "motion/react";
@@ -14,6 +15,7 @@ import { SmartImage } from "@/components/shared/smart-image";
 import { Button } from "@/components/ui/button";
 import type { Branch } from "@/types/api.types";
 import { resolveMediaUrl } from "@/utils/media";
+import { resolveBranchWhatsappDigits } from "@/utils/whatsapp";
 
 interface BranchCardProps {
   branch: Branch;
@@ -35,6 +37,15 @@ function buildMapsUrl(address: string, name: string): string {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 }
 
+function buildBranchWhatsappUrl(branch: Branch): string | null {
+  const digits = resolveBranchWhatsappDigits(branch);
+  if (!digits) {
+    return null;
+  }
+  const text = `Halo *${branch.name}*, saya ingin bertanya mengenai layanan yang tersedia.`;
+  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+}
+
 export function BranchCard({
   branch,
   index,
@@ -43,6 +54,7 @@ export function BranchCard({
   const [photoIdx, setPhotoIdx] = useState(0);
   const activePhoto = photos[photoIdx];
   const hasMultiplePhotos = photos.length > 1;
+  const waUrl = buildBranchWhatsappUrl(branch);
 
   const handlePrevPhoto = (): void => {
     setPhotoIdx((prev) => (prev === 0 ? photos.length - 1 : prev - 1));
@@ -130,14 +142,35 @@ export function BranchCard({
               <span>{branch.phone}</span>
             </a>
           ) : null}
+
+          {branch.whatsapp ? (
+            <p className="flex items-center gap-2.5 text-xs font-semibold text-emerald-700 sm:text-sm">
+              <MessageCircle className="size-4 shrink-0 text-emerald-600" />
+              <span>WhatsApp: {branch.whatsapp}</span>
+            </p>
+          ) : null}
         </div>
 
-        <div className="mt-auto pt-4">
+        <div className="mt-auto flex flex-wrap gap-2 pt-4">
+          {waUrl ? (
+            <Button
+              size="sm"
+              nativeButton={false}
+              className="h-9 flex-1 justify-center gap-1.5 rounded-xl text-xs font-bold shadow-xs"
+              render={
+                <a href={waUrl} target="_blank" rel="noopener noreferrer" />
+              }
+            >
+              <MessageCircle className="size-3.5" />
+              <span>Chat WhatsApp</span>
+            </Button>
+          ) : null}
+
           <Button
             variant="outline"
             size="sm"
             nativeButton={false}
-            className="h-9 w-full justify-center gap-1.5 rounded-xl border-slate-200 text-xs font-bold text-slate-700 hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
+            className="h-9 flex-1 justify-center gap-1.5 rounded-xl border-slate-200 text-xs font-bold text-slate-700 hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
             render={
               <a
                 href={buildMapsUrl(branch.address, branch.name)}
