@@ -96,18 +96,16 @@ export function resolveSiteFaviconUrl(settings?: SiteSettings): string | null {
   );
 }
 
-export function buildSiteIcons(faviconUrl: string | null): Metadata["icons"] {
-  if (faviconUrl) {
-    return {
-      icon: [{ url: faviconUrl }],
-      shortcut: [faviconUrl],
-      apple: [{ url: faviconUrl }],
-    };
-  }
-
+export function buildSiteIcons(): Metadata["icons"] {
   return {
-    icon: [{ url: "/favicon.ico" }],
-    shortcut: ["/favicon.ico"],
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48", type: "image/x-icon" },
+      { url: "/icon.png?size=48", sizes: "48x48", type: "image/png" },
+      { url: "/icon.png?size=96", sizes: "96x96", type: "image/png" },
+      { url: "/icon.png?size=192", sizes: "192x192", type: "image/png" },
+    ],
+    shortcut: [{ url: "/favicon.ico", type: "image/x-icon" }],
+    apple: [{ url: "/icon.png?size=180", sizes: "180x180", type: "image/png" }],
   };
 }
 

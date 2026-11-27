@@ -129,15 +129,24 @@ function normalizeSettingsPayload(raw: unknown): SiteSettings {
   return normalized;
 }
 
+export async function getLiveSiteSettings(
+  siteKey?: string
+): Promise<SiteSettings> {
+  try {
+    const raw = await httpClient.get<unknown>("/settings", {
+      siteKey,
+      cache: "no-store",
+    });
+    return normalizeSettingsPayload(raw);
+  } catch {
+    return {};
+  }
+}
+
 export async function getSiteSettings(siteKey?: string): Promise<SiteSettings> {
   "use cache";
   cacheLife("cms");
   cacheTag(CACHE_TAGS.settings(siteKey));
 
-  try {
-    const raw = await httpClient.get<unknown>("/settings", { siteKey });
-    return normalizeSettingsPayload(raw);
-  } catch {
-    return {};
-  }
+  return getLiveSiteSettings(siteKey);
 }

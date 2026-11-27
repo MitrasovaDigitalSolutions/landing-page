@@ -7,7 +7,6 @@ import {
   normalizeGoogleVerificationToken,
   parseCommaList,
   pickNonEmptyText,
-  resolveSiteFaviconUrl,
   resolveSiteUrl,
   toAbsoluteSiteUrl,
 } from "@/lib/seo";
@@ -43,7 +42,6 @@ export async function generateMetadata(): Promise<Metadata> {
     pickNonEmptyText(settings.seo?.meta_description, tagline) ??
     `Layanan resmi dan terpercaya dari ${siteName}.`;
   const keywords = parseCommaList(settings.general?.meta_keywords);
-  const faviconUrl = resolveSiteFaviconUrl(settings);
   const ogImage = toAbsoluteSiteUrl(
     resolveMediaUrl(settings.general?.logo_url, settings.general?.logo_path),
     siteUrl
@@ -67,7 +65,7 @@ export async function generateMetadata(): Promise<Metadata> {
     creator: siteName,
     publisher: siteName,
     alternates: { canonical: "/" },
-    icons: buildSiteIcons(faviconUrl),
+    icons: buildSiteIcons(),
     openGraph: {
       type: "website",
       locale: "id_ID",
