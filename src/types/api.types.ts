@@ -58,6 +58,8 @@ export interface Service {
   thumbnail_path?: string | null;
   icon_url: string | null;
   thumbnail_url: string | null;
+  images?: string[] | null;
+  image_urls?: string[] | null;
   features: string[] | null;
   price?: number | null;
   price_note?: string | null;
@@ -144,6 +146,8 @@ export interface Testimonial {
   title: string | null;
   avatar_path?: string | null;
   avatar_url: string | null;
+  image_path?: string | null;
+  image_url?: string | null;
   message: string;
   rating: number;
   order: number;
@@ -157,6 +161,7 @@ export interface Partner {
   logo_path?: string | null;
   logo_url: string | null;
   website_url: string | null;
+  phone?: string | null;
   order: number;
 }
 

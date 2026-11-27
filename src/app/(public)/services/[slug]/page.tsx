@@ -21,7 +21,7 @@ import {
   buildServiceJsonLd,
 } from "@/lib/seo-jsonld";
 import { getSiteSettings } from "@/services/api/settings.service";
-import { resolveMediaUrl } from "@/utils/media";
+import { resolveGalleryUrls, resolveMediaUrl } from "@/utils/media";
 
 export const instant = false;
 
@@ -110,9 +110,10 @@ async function loadServiceViewData(slug: string, siteKey: string) {
     formattedPrice: formatServicePrice(service.price),
     iconName: service.service_type?.icon ?? service.service_type?.slug,
     typeLabel: service.service_type?.name ?? "Produk & Layanan",
-    hasImage: Boolean(
-      resolveMediaUrl(service.thumbnail_url, service.thumbnail_path)
-    ),
+    hasImage:
+      resolveGalleryUrls(service.image_urls, service.images).length > 0 ||
+      Boolean(resolveMediaUrl(service.thumbnail_url, service.thumbnail_path)),
+    showContactSection: effectiveModules.contact,
     features,
     distinctBody,
     points: features.length > 0 ? features : distinctBody,
@@ -141,6 +142,7 @@ export default async function ServiceDetailPage({
     iconName,
     typeLabel,
     hasImage,
+    showContactSection,
     features,
     distinctBody,
     points,
@@ -172,22 +174,24 @@ export default async function ServiceDetailPage({
         siblingServices={siblingServices}
       />
 
-      <section
-        id="konsultasi"
-        className="border-t border-slate-200/80 bg-[#F7F9F7] py-10 md:py-14"
-      >
-        <Container>
-          <InquiryForm
-            orientation="horizontal"
-            compact
-            defaultSubject={`Konsultasi ${service.name}`}
-            title={`Konsultasi & Pemesanan ${service.name}`}
-            description="Isi formulir singkat di bawah ini atau hubungi tim kami langsung melalui WhatsApp untuk mendapatkan informasi detail."
-            whatsappUrl={waUrl}
-            whatsappLabel={`Tanya ${service.name} via WhatsApp`}
-          />
-        </Container>
-      </section>
+      {showContactSection ? (
+        <section
+          id="konsultasi"
+          className="border-t border-slate-200/80 bg-[#F7F9F7] py-10 md:py-14"
+        >
+          <Container>
+            <InquiryForm
+              orientation="horizontal"
+              compact
+              defaultSubject={`Konsultasi ${service.name}`}
+              title={`Konsultasi & Pemesanan ${service.name}`}
+              description="Isi formulir singkat di bawah ini atau hubungi tim kami langsung melalui WhatsApp untuk mendapatkan informasi detail."
+              whatsappUrl={waUrl}
+              whatsappLabel={`Tanya ${service.name} via WhatsApp`}
+            />
+          </Container>
+        </section>
+      ) : null}
     </div>
   );
 }

@@ -18,7 +18,7 @@ interface SiteNavbarProps {
   config: SiteConfig;
   settings: SiteSettings;
   navItems: NavItem[];
-  contactHref?: string;
+  contactHref?: string | null;
   serviceTypes?: ServiceType[];
   services?: Service[];
 }
@@ -127,15 +127,17 @@ export function SiteNavbar({
             </Button>
           ) : null}
 
-          <Button
-            size="sm"
-            nativeButton={false}
-            className="h-9 gap-1.5 rounded-full px-4 text-xs font-bold shadow-xs"
-            render={<Link href={contactHref} />}
-          >
-            <span>Hubungi Kami</span>
-            <ArrowUpRight className="size-3.5" />
-          </Button>
+          {contactHref ? (
+            <Button
+              size="sm"
+              nativeButton={false}
+              className="h-9 gap-1.5 rounded-full px-4 text-xs font-bold shadow-xs"
+              render={<Link href={contactHref} />}
+            >
+              <span>Hubungi Kami</span>
+              <ArrowUpRight className="size-3.5" />
+            </Button>
+          ) : null}
         </div>
 
         <NavbarMobile

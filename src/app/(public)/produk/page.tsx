@@ -72,8 +72,13 @@ export default async function ProdukPage(): Promise<React.JSX.Element> {
   const hasSlides = Boolean(heroSection?.payload?.slides?.length);
 
   const waDigits = settings.contact?.whatsapp?.replaceAll(/\D/g, "");
-  const fallbackWa = waDigits ? `https://wa.me/${waDigits}` : "/kontak";
-  const ctaUrl = ctaSection?.payload?.button_url ?? fallbackWa;
+  let fallbackCta = "#katalog";
+  if (waDigits) {
+    fallbackCta = `https://wa.me/${waDigits}`;
+  } else if (effectiveModules.contact) {
+    fallbackCta = "/kontak";
+  }
+  const ctaUrl = ctaSection?.payload?.button_url ?? fallbackCta;
   const ctaLabel =
     heroSection?.payload?.cta_label ??
     ctaSection?.payload?.button_label ??

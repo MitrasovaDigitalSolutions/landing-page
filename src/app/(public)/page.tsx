@@ -70,8 +70,18 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 async function loadHomePageData(siteKey: string) {
+  const [pageResult, settings] = await Promise.all([
+    Promise.allSettled([getHomePageDetail(siteKey)]).then((r) => unwrapSettled(r[0], null)),
+    getSiteSettings(siteKey),
+  ]);
+
+  const config = resolveSiteConfig(siteKey);
+  const effectiveModules = resolveEffectiveModules(
+    config.modules,
+    settings.modules?.is_active
+  );
+
   const [
-    pageResult,
     servicesResult,
     featuredServicesResult,
     typesResult,
@@ -81,24 +91,32 @@ async function loadHomePageData(siteKey: string) {
     faqsResult,
     articlesResult,
     articleCategoriesResult,
-    settings,
   ] = await Promise.all([
-    Promise.allSettled([getHomePageDetail(siteKey)]).then((r) => unwrapSettled(r[0], null)),
-    Promise.allSettled([getServices(undefined, siteKey)]).then((r) => unwrapSettled(r[0], [])),
-    Promise.allSettled([getServices({ featured: true, perPage: 20 }, siteKey)]).then((r) =>
-      unwrapSettled(r[0], [])
-    ),
-    Promise.allSettled([getServiceTypes(siteKey)]).then((r) => unwrapSettled(r[0], [])),
-    Promise.allSettled([getPortfolios(siteKey)]).then((r) => unwrapSettled(r[0], [])),
+    effectiveModules.services
+      ? Promise.allSettled([getServices(undefined, siteKey)]).then((r) => unwrapSettled(r[0], []))
+      : Promise.resolve([]),
+    effectiveModules.services
+      ? Promise.allSettled([getServices({ featured: true, perPage: 20 }, siteKey)]).then((r) =>
+          unwrapSettled(r[0], [])
+        )
+      : Promise.resolve([]),
+    effectiveModules.services
+      ? Promise.allSettled([getServiceTypes(siteKey)]).then((r) => unwrapSettled(r[0], []))
+      : Promise.resolve([]),
+    effectiveModules.portfolios
+      ? Promise.allSettled([getPortfolios(siteKey)]).then((r) => unwrapSettled(r[0], []))
+      : Promise.resolve([]),
     Promise.allSettled([getTestimonials(siteKey)]).then((r) => unwrapSettled(r[0], [])),
     Promise.allSettled([getPartners(siteKey)]).then((r) => unwrapSettled(r[0], [])),
     Promise.allSettled([getFaqs(siteKey)]).then((r) => unwrapSettled(r[0], [])),
-    Promise.allSettled([getArticles(undefined, siteKey)]).then((r) => unwrapSettled(r[0], [])),
-    Promise.allSettled([getArticleCategories(siteKey)]).then((r) => unwrapSettled(r[0], [])),
-    getSiteSettings(siteKey),
+    effectiveModules.articles
+      ? Promise.allSettled([getArticles(undefined, siteKey)]).then((r) => unwrapSettled(r[0], []))
+      : Promise.resolve([]),
+    effectiveModules.articles
+      ? Promise.allSettled([getArticleCategories(siteKey)]).then((r) => unwrapSettled(r[0], []))
+      : Promise.resolve([]),
   ]);
 
-  const config = resolveSiteConfig(siteKey);
   const sections = (pageResult?.sections ?? []).filter((s) => s.is_active !== false);
   const productsSection = sections.find((s) => s.key === "products");
   const rawLimit = productsSection?.payload?.limit;
@@ -108,7 +126,7 @@ async function loadHomePageData(siteKey: string) {
   ).slice(0, productsLimit);
 
   return {
-    effectiveModules: resolveEffectiveModules(config.modules, settings.modules?.is_active),
+    effectiveModules,
     servicesLayout: resolveServicesLayout(settings.services?.layout),
     sections,
     servicesResult,
@@ -149,7 +167,7 @@ export default async function HomePage(): Promise<React.JSX.Element> {
       <SectionRenderer
         sections={sections}
         allowedKeys={TOP_SECTION_KEYS}
-        services={servicesResult}
+        services={effectiveModules.services ? servicesResult : []}
       />
       <PartnersSection partners={partnersResult} />
       <HomeServicesSlot

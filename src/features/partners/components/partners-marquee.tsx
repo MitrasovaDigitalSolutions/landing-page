@@ -1,10 +1,11 @@
 "use client";
 
+import { Building2 } from "lucide-react";
+import Link from "next/link";
+import Marquee from "react-fast-marquee";
 import { Container } from "@/components/layout/container";
 import { SmartImage } from "@/components/shared/smart-image";
 import type { Partner } from "@/types/api.types";
-import { Building2, ExternalLink } from "lucide-react";
-import Marquee from "react-fast-marquee";
 
 interface PartnersMarqueeProps {
   partners: Partner[];
@@ -44,11 +45,9 @@ export function PartnersSection({
         gradientWidth={72}
       >
         {partners.map((partner) => (
-          <a
+          <Link
             key={partner.id}
-            href={partner.website_url ?? "#"}
-            target={partner.website_url ? "_blank" : undefined}
-            rel={partner.website_url ? "noopener noreferrer" : undefined}
+            href={`/mitra/${partner.id}`}
             className="mx-3 flex items-center gap-3.5 rounded-2xl border border-slate-200/90 bg-white px-5 py-3.5 shadow-2xs transition-all hover:border-primary/40 hover:shadow-md"
           >
             <div className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-100 bg-primary/5 p-1.5">
@@ -62,16 +61,10 @@ export function PartnersSection({
                 fallback={<Building2 className="size-5 text-primary" />}
               />
             </div>
-            <div className="pr-2">
-              <span className="block text-sm font-bold text-slate-900">
-                {partner.name}
-              </span>
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-primary">
-                <span>Mitra Terverifikasi</span>
-                <ExternalLink className="size-2.5" />
-              </span>
-            </div>
-          </a>
+            <span className="pr-2 text-sm font-bold text-slate-900">
+              {partner.name}
+            </span>
+          </Link>
         ))}
       </Marquee>
     </section>

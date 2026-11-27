@@ -66,7 +66,7 @@ export default async function PublicLayout({
     publicPages,
     effectiveModules
   );
-  const contactHref = resolveContactNavHref(publicPages);
+  const contactHref = resolveContactNavHref(publicPages, effectiveModules);
 
   const waNumber = settings.contact?.whatsapp ?? settings.contact?.phone;
   const siteName = settings.general?.site_title ?? config.name;

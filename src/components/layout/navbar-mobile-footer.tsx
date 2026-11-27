@@ -7,13 +7,13 @@ import type { SiteContactSettings } from "@/types/site-settings.types";
 
 interface NavbarMobileFooterProps {
   contact?: SiteContactSettings;
-  contactHref?: string;
+  contactHref?: string | null;
   onNavigate: () => void;
 }
 
 export function NavbarMobileFooter({
   contact,
-  contactHref = "/kontak",
+  contactHref,
   onNavigate,
 }: NavbarMobileFooterProps): React.JSX.Element {
   const waDigits = contact?.whatsapp?.replaceAll(/\D/g, "");
@@ -57,15 +57,17 @@ export function NavbarMobileFooter({
           </Button>
         ) : null}
 
-        <Button
-          className="h-10 w-full rounded-xl font-bold"
-          nativeButton={false}
-          onClick={onNavigate}
-          render={<Link href={contactHref} />}
-        >
-          <span>Hubungi Kami</span>
-          <ArrowRight className="size-4" />
-        </Button>
+        {contactHref ? (
+          <Button
+            className="h-10 w-full rounded-xl font-bold"
+            nativeButton={false}
+            onClick={onNavigate}
+            render={<Link href={contactHref} />}
+          >
+            <span>Hubungi Kami</span>
+            <ArrowRight className="size-4" />
+          </Button>
+        ) : null}
       </div>
     </div>
   );

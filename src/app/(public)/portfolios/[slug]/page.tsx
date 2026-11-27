@@ -185,10 +185,12 @@ export default async function PortfolioDetailPage({
         </Container>
       </section>
 
-      <InquirySection
-        contact={settings.contact}
-        defaultSubject={`Konsultasi Proyek: ${portfolio.title}`}
-      />
+      {effectiveModules.contact ? (
+        <InquirySection
+          contact={settings.contact}
+          defaultSubject={`Konsultasi Proyek: ${portfolio.title}`}
+        />
+      ) : null}
     </div>
   );
 }

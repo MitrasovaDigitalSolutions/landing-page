@@ -29,7 +29,7 @@ interface NavbarMobileProps {
   serviceTypes: ServiceType[];
   services: Service[];
   contact?: SiteContactSettings;
-  contactHref?: string;
+  contactHref?: string | null;
   isOverHero: boolean;
 }
 

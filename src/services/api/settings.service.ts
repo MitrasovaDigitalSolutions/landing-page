@@ -22,16 +22,42 @@ const MODULE_FLAG_KEYS: readonly (keyof SiteModulesActiveFlags)[] = [
   "contact",
 ];
 
+function coerceModuleBoolean(raw: unknown): boolean | undefined {
+  if (typeof raw === "boolean") {
+    return raw;
+  }
+  if (typeof raw === "number") {
+    if (raw === 1) return true;
+    if (raw === 0) return false;
+    return undefined;
+  }
+  if (typeof raw === "string") {
+    const normalized = raw.trim().toLowerCase();
+    if (normalized === "true" || normalized === "1") return true;
+    if (normalized === "false" || normalized === "0") return false;
+  }
+  return undefined;
+}
+
 function extractModulesFlags(rawValue: unknown): SiteModulesActiveFlags {
-  if (typeof rawValue !== "object" || rawValue === null) {
+  let candidate: unknown = rawValue;
+  if (typeof candidate === "string") {
+    try {
+      candidate = JSON.parse(candidate) as unknown;
+    } catch {
+      return {};
+    }
+  }
+  if (typeof candidate !== "object" || candidate === null || Array.isArray(candidate)) {
     return {};
   }
-  const source = rawValue as Record<string, unknown>;
+  const source = candidate as Record<string, unknown>;
   const flags: SiteModulesActiveFlags = {};
 
   for (const key of MODULE_FLAG_KEYS) {
-    if (typeof source[key] === "boolean") {
-      flags[key] = source[key];
+    const parsed = coerceModuleBoolean(source[key]);
+    if (typeof parsed === "boolean") {
+      flags[key] = parsed;
     }
   }
   return flags;

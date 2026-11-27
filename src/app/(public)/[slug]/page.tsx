@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { env } from "@/config/env";
+import { isSlugAllowedByModules } from "@/config/navigation";
 import { resolveEffectiveModules, resolveSiteConfig } from "@/config/sites";
 import { DynamicPageRenderer } from "@/features/home/components/dynamic-page-renderer";
 import { getPageBySlug } from "@/features/home/services/home.queries";
@@ -52,7 +53,7 @@ export default async function DynamicPublicPage({
   );
 
   if (
-    (slug === "karir" && !effectiveModules.careers) ||
+    !isSlugAllowedByModules(slug, effectiveModules) ||
     !page ||
     page.is_published === false ||
     page.is_active === false
@@ -63,9 +64,10 @@ export default async function DynamicPublicPage({
   const hasFeatured = Boolean(
     page.sections?.some((s) => s.is_active !== false && s.key === "featured")
   );
-  const services = hasFeatured
-    ? await getServices(undefined, siteKey).catch(() => [])
-    : [];
+  const services =
+    effectiveModules.services && hasFeatured
+      ? await getServices(undefined, siteKey).catch(() => [])
+      : [];
 
   return (
     <DynamicPageRenderer

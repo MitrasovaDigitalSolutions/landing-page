@@ -1,16 +1,23 @@
-import { Quote, Star } from "lucide-react";
+"use client";
+
+import { Quote, Star, ZoomIn } from "lucide-react";
 import { SmartImage } from "@/components/shared/smart-image";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { Testimonial } from "@/types/api.types";
+import { resolveMediaUrl } from "@/utils/media";
 
 interface TestimonialMarqueeCardProps {
   item: Testimonial;
+  onPreviewImage?: (item: Testimonial, imageUrl: string) => void;
 }
 
 export function TestimonialMarqueeCard({
   item,
+  onPreviewImage,
 }: TestimonialMarqueeCardProps): React.JSX.Element {
+  const screenshotUrl = resolveMediaUrl(item.image_url, item.image_path);
+
   return (
     <Card className="mx-3 flex w-[290px] shrink-0 flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-4 shadow-2xs transition-all hover:border-primary/40 hover:shadow-md sm:w-[340px] sm:p-5">
       <div>
@@ -31,9 +38,33 @@ export function TestimonialMarqueeCard({
           <Quote className="size-4 text-slate-300" />
         </div>
 
-        <p className="mt-2.5 line-clamp-3 text-xs leading-relaxed text-slate-700 sm:text-[13px]">
-          &ldquo;{item.message}&rdquo;
-        </p>
+        <div className="mt-2.5 flex items-start gap-3">
+          <p className="min-w-0 flex-1 line-clamp-3 text-xs leading-relaxed text-slate-700 sm:text-[13px]">
+            &ldquo;{item.message}&rdquo;
+          </p>
+
+          {screenshotUrl ? (
+            <button
+              type="button"
+              onClick={() => {
+                onPreviewImage?.(item, screenshotUrl);
+              }}
+              aria-label={`Perbesar screenshot testimoni ${item.name}`}
+              className="group relative h-20 w-16 shrink-0 cursor-zoom-in overflow-hidden rounded-xl border border-slate-200 bg-slate-100 transition-colors hover:border-primary"
+            >
+              <SmartImage
+                src={screenshotUrl}
+                alt={`Screenshot testimoni ${item.name}`}
+                fill
+                sizes="64px"
+                className="object-cover transition-transform duration-200 group-hover:scale-105"
+              />
+              <span className="absolute inset-0 flex items-center justify-center bg-slate-900/25 opacity-0 transition-opacity group-hover:opacity-100">
+                <ZoomIn className="size-3.5 text-white drop-shadow-xs" />
+              </span>
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <div className="mt-3.5 flex items-center gap-2.5 border-t border-slate-100 pt-3">

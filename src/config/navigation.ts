@@ -8,34 +8,61 @@ export interface NavItem {
   children?: NavItem[];
 }
 
-const ABOUT_GROUP_SLUGS = new Set(["profil", "cabang", "unit-usaha"]);
+const ABOUT_GROUP_SLUGS = new Set(["profil", "cabang", "unit-usaha", "branches", "business-units"]);
 const RESERVED_CORE_SLUGS = new Set([
   "home",
   "profil",
   "cabang",
+  "branches",
   "unit-usaha",
+  "business-units",
   "produk",
+  "layanan",
+  "services",
+  "portofolio",
+  "portfolio",
+  "portfolios",
   "berita",
+  "artikel",
+  "news",
+  "articles",
   "karir",
+  "karier",
+  "careers",
   "kontak",
+  "contact",
 ]);
 
-function isSlugAllowedByModules(
+export function isSlugAllowedByModules(
   slug: string,
   modules: EffectiveModuleFlags
 ): boolean {
-  switch (slug) {
+  switch (slug.trim().toLowerCase()) {
     case "cabang":
+    case "branches":
       return modules.branches;
     case "unit-usaha":
+    case "business-units":
       return modules.businessUnits;
     case "produk":
+    case "layanan":
+    case "services":
       return modules.services;
+    case "portofolio":
+    case "portfolio":
+    case "portfolios":
+      return modules.portfolios;
     case "berita":
+    case "artikel":
+    case "news":
+    case "articles":
       return modules.articles;
     case "karir":
+    case "karier":
+    case "careers":
       return modules.careers;
     case "kontak":
+    case "contact":
       return modules.contact;
     default:
       return true;
@@ -98,6 +125,10 @@ export function getHeaderNavigationItems(
     items.push({ label: "Produk", href: "/produk" });
   }
 
+  if (modules.portfolios) {
+    items.push({ label: "Portofolio", href: "/portofolio" });
+  }
+
   if (modules.articles) {
     items.push({ label: "Berita", href: "/berita" });
   }
@@ -113,6 +144,9 @@ export function getNavigationItems(modules: EffectiveModuleFlags): NavItem[] {
 
   if (modules.services) {
     items.push({ label: "Produk", href: "/produk" });
+  }
+  if (modules.portfolios) {
+    items.push({ label: "Portofolio", href: "/portofolio" });
   }
   if (modules.branches) {
     items.push({ label: "Cabang", href: "/cabang" });
@@ -163,6 +197,16 @@ export function buildHeaderNavigationFromPages(
     items.push({ label: produkPage.title || "Produk", href: "/produk" });
   }
 
+  const portofolioPage = visible.find(
+    (p) => p.slug === "portofolio" || p.slug === "portfolio"
+  );
+  if (modules.portfolios && portofolioPage) {
+    items.push({
+      label: portofolioPage.title || "Portofolio",
+      href: `/${portofolioPage.slug}`,
+    });
+  }
+
   const beritaPage = visible.find((p) => p.slug === "berita");
   if (modules.articles && beritaPage) {
     items.push({ label: beritaPage.title || "Berita", href: "/berita" });
@@ -173,7 +217,9 @@ export function buildHeaderNavigationFromPages(
     items.push({ label: karirPage.title || "Karir", href: "/karir" });
   }
 
-  const extraPages = visible.filter((p) => !RESERVED_CORE_SLUGS.has(p.slug));
+  const extraPages = visible.filter(
+    (p) => !RESERVED_CORE_SLUGS.has(p.slug.trim().toLowerCase())
+  );
   const firstExtra = extraPages.at(0);
   if (extraPages.length === 1 && firstExtra) {
     items.push({ label: firstExtra.title, href: `/${firstExtra.slug}` });
@@ -203,9 +249,15 @@ export function buildFooterNavigationFromPages(
   }));
 }
 
-export function resolveContactNavHref(pages: PageDetail[]): string {
+export function resolveContactNavHref(
+  pages: PageDetail[],
+  modules: EffectiveModuleFlags
+): string | null {
+  if (!modules.contact) {
+    return null;
+  }
   const hasKontak = pages.some(
-    (p) => p.slug === "kontak" && isPublicPageVisible(p)
+    (p) => p.slug === "kontak" && isPublicPageVisible(p, modules)
   );
   return hasKontak || pages.length === 0 ? "/kontak" : "/#contact";
 }
