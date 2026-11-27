@@ -56,7 +56,7 @@ export function buildFormattedInquiryWhatsappMessage(
     : input.siteName;
 
   const lines: string[] = [
-    `Halo *${targetHeading}* 👋`,
+    `Halo *${targetHeading}*`,
     `Saya ingin menyampaikan *Konsultasi / Pertanyaan* melalui website resmi *${input.siteName}*.`,
     "",
     "━━━━━━━━━━━━━━━━━━━━",
