@@ -2,12 +2,12 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { SyntheticEvent } from "react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import {
-  inquirySchema,
+  getInquirySchema,
   type InquiryFormData,
 } from "@/features/inquiry/schemas/inquiry.schema";
 import {
@@ -38,14 +38,6 @@ export interface UseInquiryFormReturn {
   hasWhatsappTarget: boolean;
 }
 
-function getDefaultBranchId(branches: Branch[]): string {
-  if (branches.length === 0) {
-    return "";
-  }
-  const preferred = branches.find((b) => b.is_primary) ?? branches[0];
-  return String(preferred.id);
-}
-
 function applyServerErrors(
   errors: Record<string, string[]>,
   setError: UseFormReturn<InquiryFormData>["setError"]
@@ -66,7 +58,9 @@ function buildBackendInquiryPayload(
   const cleanSubject = data.subject?.trim() ?? "";
   let subjectValue = cleanSubject;
   if (branchName) {
-    subjectValue = cleanSubject ? `[${branchName}] ${cleanSubject}` : `Cabang: ${branchName}`;
+    subjectValue = cleanSubject
+      ? `[${branchName}] ${cleanSubject}`
+      : `Cabang: ${branchName}`;
   }
 
   return {
@@ -87,12 +81,15 @@ export function useInquiryForm({
 }: UseInquiryFormOptions = {}): UseInquiryFormReturn {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastWhatsappUrl, setLastWhatsappUrl] = useState<string | null>(null);
-  const defaultBranchId = getDefaultBranchId(branches);
+  const schema = useMemo(
+    () => getInquirySchema(branches.length > 0),
+    [branches.length]
+  );
 
   const methods = useForm<InquiryFormData>({
-    resolver: zodResolver(inquirySchema) as never,
+    resolver: zodResolver(schema) as never,
     defaultValues: {
-      branch_id: defaultBranchId,
+      branch_id: "",
       name: "",
       phone: "",
       email: "",
@@ -124,25 +121,26 @@ export function useInquiryForm({
       : null;
 
     const pendingTab = waUrl ? window.open("about:blank", "_blank") : null;
-    if (pendingTab) {
-      pendingTab.opener = null;
-    }
 
     setIsSubmitting(true);
     try {
-      const payload = buildBackendInquiryPayload(data, target.branch?.name ?? null);
+      const payload = buildBackendInquiryPayload(
+        data,
+        target.branch?.name ?? null
+      );
       const result = await submitInquiryAction(payload);
 
       if (result.success) {
         setLastWhatsappUrl(waUrl);
-        if (waUrl && pendingTab) {
+        if (waUrl && pendingTab && !pendingTab.closed) {
           pendingTab.location.href = waUrl;
+          pendingTab.opener = null;
         } else if (waUrl) {
           window.open(waUrl, "_blank", "noopener,noreferrer");
         }
         toast.success(result.message);
         methods.reset({
-          branch_id: defaultBranchId,
+          branch_id: "",
           name: "",
           phone: "",
           email: "",
@@ -167,8 +165,9 @@ export function useInquiryForm({
   };
 
   const hasWhatsappTarget =
-    branches.some((branch) => Boolean(normalizeWhatsappDigits(branch.whatsapp ?? branch.phone))) ||
-    Boolean(normalizeWhatsappDigits(fallbackWhatsapp));
+    branches.some((branch) =>
+      Boolean(normalizeWhatsappDigits(branch.whatsapp ?? branch.phone))
+    ) || Boolean(normalizeWhatsappDigits(fallbackWhatsapp));
 
   const onSubmit = (e: SyntheticEvent<HTMLFormElement>): void => {
     void methods.handleSubmit(handleValidSubmit)(e);

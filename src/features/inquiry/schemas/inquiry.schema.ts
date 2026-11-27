@@ -1,7 +1,6 @@
 import { z } from "zod";
 
-export const inquirySchema = z.object({
-  branch_id: z.string().optional(),
+const inquiryBaseFields = {
   name: z.string().min(2, "Nama minimal 2 karakter"),
   phone: z
     .string()
@@ -13,6 +12,25 @@ export const inquirySchema = z.object({
     .or(z.literal("")),
   subject: z.string().optional(),
   message: z.string().min(5, "Pesan minimal 5 karakter"),
+};
+
+export const inquirySchema = z.object({
+  ...inquiryBaseFields,
+  branch_id: z.string().optional(),
 });
+
+export const inquiryWithBranchSchema = z.object({
+  ...inquiryBaseFields,
+  branch_id: z
+    .string()
+    .trim()
+    .min(1, "Silakan pilih cabang yang akan dihubungi"),
+});
+
+export function getInquirySchema(
+  requireBranch: boolean
+): typeof inquirySchema | typeof inquiryWithBranchSchema {
+  return requireBranch ? inquiryWithBranchSchema : inquirySchema;
+}
 
 export type InquiryFormData = z.infer<typeof inquirySchema>;

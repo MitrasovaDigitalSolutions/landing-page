@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { InquiryFormData } from "@/features/inquiry/schemas/inquiry.schema";
+import { cn } from "@/lib/utils";
 import type { Branch } from "@/types/api.types";
 import {
   normalizeWhatsappDigits,
@@ -37,17 +38,19 @@ export function InquiryBranchSelect({
 
   const selectedBranchId = useWatch({ control, name: "branch_id" });
   const selectedBranch =
-    branches.find((b) => String(b.id) === selectedBranchId) ?? branches.at(0);
+    branches.find((b) => String(b.id) === selectedBranchId) ?? null;
 
   const branchDigits = selectedBranch
     ? resolveBranchWhatsappDigits(selectedBranch)
     : null;
   const fallbackDigits = normalizeWhatsappDigits(fallbackWhatsapp);
+  const hasError = Boolean(errors.branch_id);
 
-  let helperText = "Permohonan akan dikirimkan ke tim layanan kami.";
-  if (branchDigits && selectedBranch) {
+  let helperText =
+    "Pilih cabang tujuan agar pesan langsung diteruskan ke WhatsApp cabang terkait.";
+  if (selectedBranch && branchDigits) {
     helperText = `WhatsApp tujuan: ${selectedBranch.name} (+${branchDigits})`;
-  } else if (fallbackDigits) {
+  } else if (selectedBranch && fallbackDigits) {
     helperText =
       "Cabang ini belum memiliki nomor WA khusus; pesan dialihkan ke WhatsApp resmi.";
   }
@@ -56,6 +59,7 @@ export function InquiryBranchSelect({
     <FormField
       id="inquiry-branch"
       label="Pilih Cabang yang Dihubungi"
+      required
       error={errors.branch_id?.message}
     >
       <Controller
@@ -72,15 +76,25 @@ export function InquiryBranchSelect({
           >
             <SelectTrigger
               id="inquiry-branch"
-              className="h-10 w-full rounded-xl border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-800 data-[size=default]:h-10"
+              aria-invalid={hasError}
+              className={cn(
+                "h-10 w-full rounded-xl border-slate-200 bg-white px-3.5 text-xs font-medium text-slate-800 data-[size=default]:h-10",
+                hasError &&
+                  "border-rose-400 focus-visible:border-rose-400 focus-visible:ring-rose-500/20"
+              )}
             >
               <SelectValue>
                 <span className="inline-flex items-center gap-2 truncate">
                   <Building2 className="size-4 shrink-0 text-primary" />
-                  <span className="truncate">
+                  <span
+                    className={cn(
+                      "truncate",
+                      !selectedBranch && "font-normal text-slate-400"
+                    )}
+                  >
                     {selectedBranch
                       ? formatBranchOptionLabel(selectedBranch)
-                      : "Pilih cabang tujuan"}
+                      : "Pilih cabang tujuan..."}
                   </span>
                 </span>
               </SelectValue>

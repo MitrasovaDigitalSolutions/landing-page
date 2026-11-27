@@ -20,6 +20,11 @@ export interface InquiryWhatsappMessageInput {
   siteUrl?: string;
 }
 
+function formatSenderPhone(rawPhone: string): string {
+  const digits = normalizeWhatsappDigits(rawPhone);
+  return digits ? `+${digits}` : rawPhone.trim();
+}
+
 export function resolveInquiryWhatsappTarget(
   branches: Branch[],
   selectedBranchId: string | undefined,
@@ -57,7 +62,7 @@ export function buildFormattedInquiryWhatsappMessage(
     "━━━━━━━━━━━━━━━━━━━━",
     "*DATA PENGIRIM*",
     `• *Nama:* ${input.name.trim()}`,
-    `• *No. HP / WA:* ${input.phone.trim()}`,
+    `• *No. WhatsApp:* ${formatSenderPhone(input.phone)}`,
   ];
 
   const cleanEmail = input.email?.trim() ?? "";
